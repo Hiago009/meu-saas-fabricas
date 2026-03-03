@@ -213,7 +213,7 @@ app.post('/login-app', async (req, res) => {
     const { usuario, senha } = req.body;
     try {
         // Buscando com os nomes exatos que você confirmou
-        const sacoleiro = await prisma.cliente.findFirst({
+        const sacoleiro = await prisma.sacoleiro.findFirst({
             where: {
                 usuarioApp: usuario, 
                 senhaApp:   senha    

@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Mantemos SQLite para desenvolvimento local
+  provider = "postgresql" // Banco de dados de produção do Render
   url      = env("DATABASE_URL")
 }
 
@@ -59,8 +59,7 @@ model Sacoleiro {
   
   malas        Mala[]
   vendas       VendaSacoleiro[]
-  vendedoras VendedoraFinal[]
-
+  vendedoras   VendedoraFinal[] // Ligação correta adicionada aqui
 }
 
 model Mala {
@@ -101,7 +100,8 @@ model VendedoraFinal {
   diaCobranca Int?     // Dia combinado para receber
   
   sacoleiraId Int
-  sacoleira   Cliente  @relation(fields: [sacoleiraId], references: [id]) // (Troque Cliente pelo nome exato da sua tabela de sacoleiros)
+  // 👇 AQUI ESTAVA O ERRO! Troquei 'Cliente' por 'Sacoleiro'
+  sacoleira   Sacoleiro  @relation(fields: [sacoleiraId], references: [id]) 
 
   criadoEm    DateTime @default(now())
 }
