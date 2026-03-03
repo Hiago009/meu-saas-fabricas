@@ -239,13 +239,24 @@
             const divLista = document.getElementById('lista-agenda-crm');
             divLista.innerHTML = '';
             if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma cliente encontrada.</p>`;
-            agendaGlobal.forEach(c => {
-                const linkMaps = `http://googleusercontent.com/maps.google.com/?q=${encodeURIComponent(c.nome + ", Juiz de Fora, MG")}`;
+agendaGlobal.forEach(c => {
                 divLista.innerHTML += `
-                    <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center;">
-                        <div><h4 style="margin: 0 0 4px 0;">👤 ${c.nome}</h4><p style="margin: 0; font-size: 11px; color: var(--texto-claro);">Última compra: ${new Date(c.ultimaCompra).toLocaleDateString('pt-BR')}</p></div>
-                        <button onclick="window.open('${linkMaps}', '_blank')" style="background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 12px;">📍 Rota</button>
-                    </div>`;
+                    <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; color: var(--texto-escuro);">👤 ${c.nome}</h4>
+                                <p style="margin: 0; font-size: 11px; color: var(--texto-claro);">📍 ${c.endereco}</p>
+                            </div>
+                            <span style="background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">
+                                🗓️ Dia ${c.diaCobranca || '--'}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">💬 Zap</button>
+                            <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco + ", Juiz de Fora, MG")}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">📍 Rota</button>
+                        </div>
+                    </div>
+                `;
             });
         }
         function filtrarAgenda() { 
