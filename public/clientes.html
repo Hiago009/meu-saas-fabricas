@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Sacoleiras</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; color: #1f2937; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .menu { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .menu-links a { text-decoration: none; padding: 8px 15px; background: #e5e7eb; color: #374151; border-radius: 5px; font-weight: bold; margin-right: 5px; }
+        .menu-links a.ativo { background: #4f46e5; color: white; }
+        .btn-sair { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .painel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        input { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; width: 100%; box-sizing: border-box;}
+        input:focus { border-color: #4f46e5; }
+        button.btn-salvar { background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; color: #4b5563; }
+        .badge { background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            // O Sensor: Descobre qual é a página atual e pinta o botão correspondente de Verde!
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) {
+                        btn.style.background = '#10b981'; // Pinta o ativo de Verde
+                    }
+                });
+            }, 50);
+        </script>
+        </div>
+        </div>
+
+        <div class="painel">
+            <h2>➕ Cadastrar Nova Sacoleira</h2>
+            <div class="grid-inputs">
+                <div>
+                    <label style="font-size: 12px; color: #6b7280; font-weight: bold;">Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Ex: Giselle Silva">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #6b7280; font-weight: bold;">Telefone / WhatsApp</label>
+                    <input type="text" id="telefone" placeholder="(32) 99999-9999">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #6b7280; font-weight: bold;">Login p/ o App (Usuário)</label>
+                    <input type="text" id="loginAcesso" placeholder="Ex: giselle123">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: #6b7280; font-weight: bold;">Senha p/ o App</label>
+                    <input type="text" id="senhaAcesso" placeholder="Senha de 4 a 6 números">
+                </div>
+            </div>
+            <button class="btn-salvar" onclick="salvarCliente()">Criar Acesso da Sacoleira</button>
+        </div>
+
+        <div class="painel">
+            <h2>Equipe de Vendas (Blindada)</h2>
+            <table>
+                <thead><tr><th>Nome</th><th>Telefone</th><th>Login do App</th><th>Senha do App</th></tr></thead>
+                <tbody id="tabela-clientes">
+                    <tr><td colspan="4" style="text-align: center;">Carregando equipe...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 🛡️ SEGURANÇA: O Crachá
+        const crachaString = localStorage.getItem('usuarioLogado');
+        if (!crachaString) window.location.href = '/login.html';
+        const usuario = JSON.parse(crachaString);
+        document.getElementById('nome-fabrica').innerText = `🏢 ${usuario.nome}`;
+
+        async function carregarClientes() {
+            try {
+                // 📡 Mostrando o crachá para o motor
+                const resposta = await fetch('/clientes', {
+                    headers: { 'empresa-id': usuario.id }
+                });
+                
+                if (!resposta.ok) throw new Error("Acesso negado!");
+                const clientes = await resposta.json();
+                
+                const tbody = document.getElementById('tabela-clientes');
+                tbody.innerHTML = '';
+
+                if(clientes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280;">Nenhuma sacoleira cadastrada.</td></tr>';
+                    return;
+                }
+
+                clientes.forEach(c => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${c.nome}</strong></td>
+                            <td>${c.telefone || '-'}</td>
+                            <td><span class="badge">${c.usuarioApp || 'Sem acesso'}</span></td>
+                            <td>${c.senhaApp || '-'}</td>
+                        </tr>
+                    `;
+                });
+            } catch (erro) {
+                alert(erro.message);
+                sair();
+            }
+        }
+
+        async function salvarCliente() {
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const loginAcesso = document.getElementById('loginAcesso').value;
+            const senhaAcesso = document.getElementById('senhaAcesso').value;
+
+            if (!nome || !loginAcesso || !senhaAcesso) return alert("Preencha Nome, Login e Senha para o App!");
+
+            const resposta = await fetch('/clientes', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'empresa-id': usuario.id // 🛡️ Crachá junto com os dados!
+                },
+                body: JSON.stringify({ nome, telefone, loginAcesso, senhaAcesso })
+            });
+
+            if (resposta.ok) {
+                document.getElementById('nome').value = ''; document.getElementById('telefone').value = '';
+                document.getElementById('loginAcesso').value = ''; document.getElementById('senhaAcesso').value = '';
+                carregarClientes();
+            } else {
+                alert("Erro ao salvar. O usuário de login já existe?");
+            }
+        }
+
+        function sair() {
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '/login.html';
+        }
+
+        carregarClientes();
+    </script>
+</body>
+</html>

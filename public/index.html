@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Estoque da Fábrica</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; color: #1f2937; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .painel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        input { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; width: 100%; box-sizing: border-box; }
+        input:focus { border-color: #4f46e5; }
+        button.btn-salvar { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; color: #4b5563; }
+        .badge { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+            <a href="/suporte.html" data-link="/suporte.html" style="text-decoration: none; padding: 10px 15px; background: #475569; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎧 Ajuda & Planos</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            // Sensor do botão verde
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) {
+                        btn.style.background = '#10b981'; 
+                    }
+                });
+            }, 50);
+        </script>
+        <div class="painel">
+            <h2>➕ Nova Peça no Estoque</h2>
+            <div class="grid-inputs">
+                <input type="text" id="codigo" placeholder="Cód. (Ex: BL01)">
+                <input type="text" id="produto" placeholder="Nome da Peça">
+                <input type="number" id="quantidade" placeholder="Qtd">
+                <input type="number" id="preco" step="0.01" placeholder="Preço Custo (R$)">
+            </div>
+            <button class="btn-salvar" onclick="salvarProduto()">Guardar no Estoque</button>
+        </div>
+
+        <div class="painel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0;">📦 Meu Estoque Blindado</h2>
+                <input type="text" id="buscaEstoque" onkeyup="filtrarEstoque()" placeholder="🔍 Buscar por código ou nome..." style="max-width: 300px; border-radius: 20px; padding: 10px 15px; border: 1px solid #d1d5db;">
+            </div>
+            
+            <table>
+                <thead><tr><th>Cód</th><th>Produto</th><th>Qtd</th><th>Preço</th></tr></thead>
+                <tbody id="tabela-estoque">
+                    <tr><td colspan="4" style="text-align: center;">Carregando peças...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🛡️ 1. SEGURANÇA: PEGAR O CRACHÁ
+        // ==========================================
+        const crachaString = localStorage.getItem('usuarioLogado');
+        if (!crachaString) window.location.href = '/login.html';
+        const usuario = JSON.parse(crachaString);
+        document.getElementById('nome-fabrica').innerText = `🏢 ${usuario.nome}`;
+
+        // ==========================================
+        // 📦 2. BUSCAR PEÇAS 
+        // ==========================================
+        async function carregarEstoque() {
+            try {
+                const resposta = await fetch('/estoque', { headers: { 'empresa-id': usuario.id } });
+                if (!resposta.ok) throw new Error("Acesso negado pelo motor!");
+                
+                const estoque = await resposta.json();
+                const tbody = document.getElementById('tabela-estoque');
+                tbody.innerHTML = '';
+
+                if(estoque.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280;">Seu estoque está vazio. Cadastre uma peça!</td></tr>';
+                    return;
+                }
+
+                estoque.forEach(peca => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><span class="badge">${peca.codigo || '-'}</span></td>
+                            <td><strong>${peca.produto}</strong></td>
+                            <td>${peca.quantidade} un.</td>
+                            <td>R$ ${peca.preco.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            } catch (erro) {
+                alert(erro.message);
+                sair(); 
+            }
+        }
+
+        // ==========================================
+        // 💾 3. SALVAR PEÇA 
+        // ==========================================
+        async function salvarProduto() {
+            const codigo = document.getElementById('codigo').value;
+            const produto = document.getElementById('produto').value;
+            const quantidade = document.getElementById('quantidade').value;
+            const preco = document.getElementById('preco').value;
+
+            if (!produto || !quantidade || !preco) return alert("Preencha Nome, Qtd e Preço!");
+
+            const resposta = await fetch('/estoque', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'empresa-id': usuario.id },
+                body: JSON.stringify({ codigo, produto, quantidade, preco })
+            });
+
+            if (resposta.ok) {
+                document.getElementById('codigo').value = ''; document.getElementById('produto').value = '';
+                document.getElementById('quantidade').value = ''; document.getElementById('preco').value = '';
+                carregarEstoque(); 
+            } else {
+                alert("Erro ao salvar no banco blindado.");
+            }
+        }
+
+        // ==========================================
+        // 🔍 4. FUNÇÃO DE PESQUISA EM TEMPO REAL
+        // ==========================================
+        function filtrarEstoque() {
+            let input = document.getElementById('buscaEstoque').value.toLowerCase();
+            let linhas = document.querySelectorAll('#tabela-estoque tr');
+
+            linhas.forEach(linha => {
+                let textoLinha = linha.innerText.toLowerCase();
+                if (textoLinha.includes(input)) {
+                    linha.style.display = '';
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+        }
+
+        function sair() {
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '/login.html';
+        }
+
+        carregarEstoque();
+    </script>
+</body>
+</html>

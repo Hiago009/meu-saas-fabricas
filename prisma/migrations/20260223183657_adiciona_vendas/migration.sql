@@ -1,0 +1,9 @@
+-- CreateTable
+CREATE TABLE "Venda" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "quantidade" INTEGER NOT NULL,
+    "valorTotal" REAL NOT NULL,
+    "dataDaVenda" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "produtoId" INTEGER NOT NULL,
+    CONSTRAINT "Venda_produtoId_fkey" FOREIGN KEY ("produtoId") REFERENCES "Produto" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

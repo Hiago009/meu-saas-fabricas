@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Venda Direta</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #1f2937; text-align: center; }
+        
+        /* Menu */
+        .menu { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .menu a { text-decoration: none; padding: 10px 20px; background: #4f46e5; color: white; border-radius: 5px; font-weight: bold; }
+        .menu a:hover { background: #4338ca; }
+        .menu a.ativo { background: #10b981; }
+        .menu a.btn-sair { background: #ef4444; }
+        .menu a.btn-sair:hover { background: #dc2626; }
+
+        /* Painel de Venda */
+        .painel-venda { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid #3b82f6; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; color: #374151; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        
+        /* Dinheiro e Botão */
+        .resumo-valor { text-align: center; background: #ecfdf5; padding: 15px; border-radius: 8px; border: 2px dashed #10b981; margin: 20px 0; }
+        .valor-gigante { font-size: 32px; color: #047857; font-weight: bold; margin: 5px 0; }
+        .btn-vender { background: #10b981; color: white; border: none; padding: 15px; width: 100%; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-vender:hover { background: #059669; }
+
+        /* Histórico */
+        .card-historico { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #6b7280; display: flex; justify-content: space-between; align-items: center; }
+        .info-venda h4 { margin: 0 0 5px 0; color: #1f2937; }
+        .info-venda p { margin: 0; color: #6b7280; font-size: 14px; }
+        .valor-venda { font-size: 18px; font-weight: bold; color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+             <a href="/suporte.html" data-link="/suporte.html" style="text-decoration: none; padding: 10px 15px; background: #475569; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎧 Ajuda & Planos</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            // O Sensor: Descobre qual é a página atual e pinta o botão correspondente de Verde!
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) {
+                        btn.style.background = '#10b981'; // Pinta o ativo de Verde
+                    }
+                });
+            }, 50);
+        </script>
+        </div>
+
+        <h1>💰 Caixa / Venda de Balcão</h1>
+
+        <div class="painel-venda">
+            <h3 style="margin-top: 0; color: #3b82f6;">Nova Venda Rápida</h3>
+            
+            <div class="form-group">
+                <label>🛒 Escolha a Peça (O que tem no galpão):</label>
+                <select id="select-produto" onchange="calcularTotalNaTela()">
+                    <option value="">Carregando estoque...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🔢 Quantidade:</label>
+                <input type="number" id="input-qtd" value="1" min="1" oninput="calcularTotalNaTela()">
+            </div>
+
+            <div class="form-group">
+                <label>👤 Cliente / Comprador (Opcional):</label>
+                <select id="select-cliente">
+                    <option value="">Cliente Avulso (Sem cadastro)</option>
+                </select>
+            </div>
+
+            <div class="resumo-valor">
+                <p style="margin: 0; color: #065f46; font-weight: bold;">TOTAL DA VENDA:</p>
+                <div class="valor-gigante" id="valor-total-tela">R$ 0,00</div>
+            </div>
+
+            <button class="btn-vender" onclick="realizarVenda()">💸 Confirmar Venda e Baixar Estoque</button>
+        </div>
+
+        <h3 style="color: #4b5563; border-bottom: 2px solid #d1d5db; padding-bottom: 5px;">📜 Histórico de Vendas</h3>
+        <div id="lista-historico">
+            <p style="text-align: center; color: #9ca3af;">Carregando histórico...</p>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // 👮‍♂️ O SEGURANÇA (Verificação de Acesso)
+        // ==========================================
+        const cracha = localStorage.getItem('usuarioLogado');
+        if (!cracha) {
+            // Se não tem crachá, chuta pra tela de login IMEDIATAMENTE!
+            window.location.href = '/login.html';
+        }
+        // ==========================================
+// ==========================================
+        // 🚪 FUNÇÃO DE SAIR DO SISTEMA
+        // ==========================================
+        function fazerLogout() {
+            // 1. O navegador joga o crachá no lixo
+            localStorage.removeItem('usuarioLogado');
+            // 2. Chuta o usuário de volta para a tela de Login
+            window.location.href = '/login.html';
+        }
+
+        let estoqueAtual = [];
+
+        // 1. Carrega o que tem no galpão para vender
+        async function carregarEstoque() {
+            const res = await fetch('/estoque');
+            estoqueAtual = await res.json();
+            
+            const select = document.getElementById('select-produto');
+            select.innerHTML = '<option value="">Selecione uma peça...</option>';
+            
+            estoqueAtual.forEach(p => {
+                if(p.quantidade > 0) {
+                    select.innerHTML += `<option value="${p.id}" data-preco="${p.preco}">[Tem: ${p.quantidade}] - ${p.produto} (${p.cor} / ${p.tamanho}) - R$ ${p.preco.toFixed(2)}</option>`;
+                }
+            });
+        }
+
+        // 2. Carrega as sacoleiras caso seja para uma delas
+        async function carregarClientes() {
+            const res = await fetch('/clientes');
+            const clientes = await res.json();
+            
+            const select = document.getElementById('select-cliente');
+            clientes.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+            });
+        }
+
+        // 3. Calcula o dinheiro em tempo real enquanto o sogro digita a quantidade
+        function calcularTotalNaTela() {
+            const selectProduto = document.getElementById('select-produto');
+            const qtd = parseInt(document.getElementById('input-qtd').value) || 0;
+            
+            if(selectProduto.selectedIndex > 0) {
+                // Pega o preço que guardamos escondido na opção
+                const preco = parseFloat(selectProduto.options[selectProduto.selectedIndex].getAttribute('data-preco'));
+                const total = preco * qtd;
+                document.getElementById('valor-total-tela').innerText = `R$ ${total.toFixed(2)}`;
+            } else {
+                document.getElementById('valor-total-tela').innerText = `R$ 0,00`;
+            }
+        }
+
+        // 4. O botão verde que manda a venda pro motor!
+        async function realizarVenda() {
+            const produtoId = document.getElementById('select-produto').value;
+            const qtd = document.getElementById('input-qtd').value;
+            const clienteId = document.getElementById('select-cliente').value;
+
+            if(!produtoId || qtd <= 0) {
+                alert("⚠️ Escolha uma peça e uma quantidade válida!");
+                return;
+            }
+
+            const resposta = await fetch('/vendas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    produtoId: parseInt(produtoId), 
+                    quantidadeVendida: parseInt(qtd),
+                    clienteId: clienteId ? parseInt(clienteId) : null
+                })
+            });
+
+            if(resposta.ok) {
+                alert("✅ Venda realizada! Dinheiro no caixa e estoque atualizado.");
+                document.getElementById('input-qtd').value = 1; // reseta
+                document.getElementById('select-produto').selectedIndex = 0; // reseta
+                calcularTotalNaTela(); // zera o visor
+                carregarEstoque(); // atualiza a quantidade disponível na lista
+                carregarHistorico(); // atualiza o histórico lá embaixo
+            } else {
+                const erro = await resposta.json();
+                alert("❌ Erro: " + erro.mensagem);
+            }
+        }
+
+        // 5. Mostra o que já foi vendido hoje/antes
+        async function carregarHistorico() {
+            const res = await fetch('/vendas');
+            const vendas = await res.json();
+            
+            const divLista = document.getElementById('lista-historico');
+            divLista.innerHTML = '';
+
+            if(vendas.length === 0) {
+                divLista.innerHTML = '<p style="text-align: center; color: #9ca3af;">Nenhuma venda direta registrada ainda.</p>';
+                return;
+            }
+
+            vendas.forEach(v => {
+                const data = new Date(v.dataDaVenda).toLocaleDateString('pt-BR');
+                const nomeCliente = v.clienteVinculado ? v.clienteVinculado.nome : "Cliente Avulso";
+                const nomeProduto = v.produtoVendido ? `${v.produtoVendido.produto} (${v.produtoVendido.cor})` : "Produto Apagado";
+
+                divLista.innerHTML += `
+                    <div class="card-historico">
+                        <div class="info-venda">
+                            <h4>📦 ${v.quantidade}x ${nomeProduto}</h4>
+                            <p><b>Comprador:</b> ${nomeCliente}</p>
+                            <p><b>Data:</b> ${data}</p>
+                        </div>
+                        <div class="valor-venda">
+                            + R$ ${v.valorTotal.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Liga tudo quando a tela abre!
+        carregarEstoque();
+        carregarClientes();
+        carregarHistorico();
+    </script>
+
+</body>
+</html>

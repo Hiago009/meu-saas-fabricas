@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Catálogo de Novidades</title>
+    <style>
+        /* Visual Boutique Premium (Minimalista e Elegante) */
+        :root { 
+            --marca: #1f2937; /* Chumbo/Preto elegante */
+            --marca-hover: #111827; /* Preto absoluto */
+            --fundo: #f3f4f6; /* Cinza super claro */
+            --texto: #374151; /* Cinza escuro para leitura confortável */
+            --card: #ffffff; 
+            --detalhe: #e5e7eb; /* Bordas e detalhes sutis */
+        }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--fundo); margin: 0; padding: 0; color: var(--texto); }
+        
+        .header { background: var(--marca); color: white; padding: 30px 20px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+        .header p { margin: 10px 0 0 0; font-size: 13px; opacity: 0.8; letter-spacing: 0.5px; }
+
+        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+
+        .barra-busca { margin-bottom: 25px; }
+        .barra-busca input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--detalhe); font-size: 15px; box-sizing: border-box; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); background: #ffffff; transition: 0.2s; }
+        .barra-busca input:focus { border-color: var(--marca); box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+
+        /* Grade de Roupas */
+        .grid-vitrine { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        @media (min-width: 768px) { .grid-vitrine { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; } }
+
+        .card-peca { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--detalhe); transition: 0.3s; display: flex; flex-direction: column; }
+        .card-peca:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+
+        /* Fundo placeholder neutro */
+        .foto-placeholder { background: linear-gradient(45deg, #f3f4f6, #e5e7eb); height: 180px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #9ca3af; }
+        
+        .info-peca { padding: 15px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .info-peca h3 { margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ref { font-size: 11px; color: #6b7280; margin-bottom: 12px; display: block; }
+        .preco { font-size: 18px; font-weight: 800; color: var(--marca); }
+
+        .btn-quero { background: var(--marca); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; margin-top: 15px; cursor: pointer; transition: 0.2s; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .btn-quero:hover { background: var(--marca-hover); }
+
+        .rodape { text-align: center; padding: 30px 20px; color: #9ca3af; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Coleção Atual</h1>
+        <p>Escolha seus looks e envie para a sua revendedora</p>
+    </div>
+
+    <div class="container">
+        <div class="barra-busca">
+            <input type="text" id="busca-vitrine" placeholder="🔍 Buscar modelo, cor ou referência..." oninput="filtrarVitrine()">
+        </div>
+
+        <div class="grid-vitrine" id="lista-vitrine">
+            <p style="text-align: center; grid-column: 1 / -1; color: #9ca3af;">Organizando as araras...</p>
+        </div>
+    </div>
+
+    <div class="rodape">
+        <p>Catálogo atualizado com o estoque disponível.</p>
+    </div>
+
+    <script>
+        let vitrineGlobal = [];
+
+        async function carregarVitrine() {
+            try {
+                const resposta = await fetch('/catalogo-publico');
+                vitrineGlobal = await resposta.json();
+                renderizarVitrine(vitrineGlobal);
+            } catch (erro) {
+                document.getElementById('lista-vitrine').innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar a vitrine.</p>';
+            }
+        }
+
+        function renderizarVitrine(lista) {
+            const divVitrine = document.getElementById('lista-vitrine');
+            divVitrine.innerHTML = '';
+
+            if (lista.length === 0) {
+                divVitrine.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: #9ca3af;">Nenhuma peça encontrada.</p>';
+                return;
+            }
+
+            lista.forEach(peca => {
+                const msgZap = encodeURIComponent(`Olá! Gostei muito do modelo *${peca.nome}* (Ref: ${peca.codigo}). Está disponível?`);
+                const linkZapMsg = `https://api.whatsapp.com/send?text=${msgZap}`;
+
+                divVitrine.innerHTML += `
+                    <div class="card-peca">
+                        <div class="foto-placeholder">🛍️</div>
+                        <div class="info-peca">
+                            <div>
+                                <span class="ref">CÓD: ${peca.codigo}</span>
+                                <h3>${peca.nome}</h3>
+                            </div>
+                            <div>
+                                <div class="preco">R$ ${peca.precoSugerido.toFixed(2)}</div>
+                                <button class="btn-quero" onclick="window.open('${linkZapMsg}', '_blank')">Eu Quero</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filtrarVitrine() {
+            const texto = document.getElementById('busca-vitrine').value.toLowerCase();
+            const filtrados = vitrineGlobal.filter(p => p.nome.toLowerCase().includes(texto) || p.codigo.toLowerCase().includes(texto));
+            renderizarVitrine(filtrados);
+        }
+
+        carregarVitrine();
+    </script>
+</body>
+</html>

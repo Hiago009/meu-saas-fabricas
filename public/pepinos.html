@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Quitação de Pepinos</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #1f2937; text-align: center; }
+
+        /* Menu do Sistema */
+        .menu { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        .menu a { text-decoration: none; padding: 10px 20px; background: #4f46e5; color: white; border-radius: 5px; font-weight: bold; }
+        .menu a:hover { background: #4338ca; }
+        .menu a.ativo { background: #10b981; }
+
+        /* Cartão de Pepino (A Dívida) */
+        .card-pepino { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid #ef4444; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;}
+        .pepino-info h3 { margin: 0 0 5px 0; color: #1f2937; }
+        .pepino-info p { margin: 5px 0 0 0; color: #6b7280; font-size: 14px; }
+        .valor-pepino { font-size: 20px; font-weight: bold; color: #ef4444; }
+
+        .btn-quitar { background: #f59e0b; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-quitar:hover { background: #d97706; }
+
+        /* Telinha de Pagamento (Fica escondida até clicar no botão) */
+        #modal-pagar { display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-top: 20px; border: 2px solid #f59e0b; }
+        .btn-confirmar { background: #10b981; color: white; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px;}
+        .btn-cancelar { background: #6b7280; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="menu">
+            <a href="/">📦 Meu Estoque</a>
+            <a href="/kits.html">🎒 Montar Kits</a>
+            <a href="/cobranca.html">📝 Fazer Acerto</a>
+            <a href="/pepinos.html" class="ativo">🥒 Pepinos Abertos</a>
+            <a href="/vendas.html">💰 Venda Direta</a>
+            <a href="/clientes.html">👩‍💼 Sacoleiras</a>
+        </div>
+
+        <h1>🥒 Quitação de Pepinos</h1>
+        <p style="text-align: center; color: #6b7280;">Lista de clientes que deixaram dívidas (restantes) nos acertos da rua.</p>
+
+        <div id="modal-pagar">
+            <h3 id="titulo-modal" style="margin-top: 0; color: #d97706; text-align: center;">Abater Dívida</h3>
+            <p style="text-align: center; font-size: 18px;">Valor atual do pepino: <b id="valor-maximo-pepino" style="color: #ef4444;">R$ 0,00</b></p>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <label style="font-weight: bold; color: #374151;">💰 Quanto a cliente está pagando agora? (R$):</label><br>
+                <input type="number" id="input-valor-abatido" style="font-size: 24px; width: 80%; padding: 15px; margin-top: 10px; border: 3px solid #f59e0b; border-radius: 5px; text-align: center; font-weight: bold;" placeholder="Ex: 50.00">
+            </div>
+
+            <button class="btn-confirmar" onclick="salvarPagamento()">💵 Confirmar Pagamento do Pepino</button>
+            <button class="btn-cancelar" onclick="fecharModal()">❌ Cancelar</button>
+        </div>
+
+        <div id="lista-pepinos" style="margin-top: 30px;">
+            <p style="text-align: center; color: #6b7280;">Buscando devedores no banco de dados...</p>
+        </div>
+
+    </div>
+
+    <script>
+        let pepinoAtualId = null;
+
+        // 1. Busca os caloteiros... ops, devedores no banco de dados!
+        async function carregarPepinos() {
+            const resposta = await fetch('/pepinos/abertos');
+            const pepinos = await resposta.json();
+
+            const divLista = document.getElementById('lista-pepinos');
+            divLista.innerHTML = '';
+
+            if(pepinos.length === 0) {
+                divLista.innerHTML = '<p style="text-align: center; color: #10b981; font-weight: bold; font-size: 20px;">🎉 Que maravilha! Nenhum pepino na rua. Todo mundo pagou certinho.</p>';
+                return;
+            }
+
+            pepinos.forEach(kit => {
+                let valorTotal = kit.valorTotal.toFixed(2);
+                let valorPago = kit.valorPago.toFixed(2);
+                let valorPepino = kit.valorPepino.toFixed(2);
+
+                divLista.innerHTML += `
+                    <div class="card-pepino">
+                        <div class="pepino-info">
+                            <h3>👤 ${kit.sacoleiro.nome}</h3>
+                            <p><b>Kit Original:</b> ${kit.nomeDoKit}</p>
+                            <p><b>Valor Total da Venda:</b> R$ ${valorTotal}</p>
+                            <p style="color: #059669;"><b>Já havia pago:</b> R$ ${valorPago}</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <span style="font-size: 13px; font-weight: bold; color: #ef4444;">DÍVIDA RESTANTE:</span><br>
+                            <span class="valor-pepino">R$ ${valorPepino}</span><br><br>
+                            <button class="btn-quitar" onclick="abrirModal(${kit.id}, '${kit.sacoleiro.nome}', ${valorPepino})">Abater Valor 💵</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // 2. Abre a caixinha para digitar o dinheiro
+        function abrirModal(idKit, nomeCliente, valorPepino) {
+            pepinoAtualId = idKit;
+            document.getElementById('titulo-modal').innerText = 'Recebendo dinheiro de: ' + nomeCliente;
+            document.getElementById('valor-maximo-pepino').innerText = 'R$ ' + valorPepino.toFixed(2);
+            document.getElementById('input-valor-abatido').value = ''; 
+            
+            document.getElementById('lista-pepinos').style.display = 'none';
+            document.getElementById('modal-pagar').style.display = 'block';
+        }
+
+        function fecharModal() {
+            pepinoAtualId = null;
+            document.getElementById('lista-pepinos').style.display = 'block';
+            document.getElementById('modal-pagar').style.display = 'none';
+        }
+
+        // 3. Manda pro servidor descontar a dívida!
+        async function salvarPagamento() {
+            let valorDigitado = parseFloat(document.getElementById('input-valor-abatido').value);
+            
+            if(!valorDigitado || valorDigitado <= 0) {
+                alert("Digite um valor válido para abater o pepino!");
+                return;
+            }
+
+            const resposta = await fetch('/pepinos/' + pepinoAtualId + '/quitar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ valorAbatido: valorDigitado })
+            });
+
+            if(resposta.ok) {
+                alert("✅ Pagamento registrado com sucesso! A dívida foi abatida.");
+                fecharModal();
+                carregarPepinos(); // Atualiza a lista na hora!
+            } else {
+                alert("❌ Erro ao registrar o pagamento.");
+            }
+        }
+
+        // Carrega a lista assim que a tela abre
+        carregarPepinos();
+    </script>
+</body>
+</html>

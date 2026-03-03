@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Suporte e Ajuda</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .painel { background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; margin-top: 20px;}
+        h1 { color: #1e1b4b; margin-bottom: 10px; }
+        p { color: #4b5563; font-size: 16px; line-height: 1.6; max-width: 600px; margin: 0 auto 20px auto; }
+        
+        .btn-zap { background: #25D366; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 18px; display: inline-block; margin-top: 20px; transition: 0.2s; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.2); }
+        .btn-zap:hover { background: #128C7E; transform: translateY(-2px); }
+        
+        .info-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; max-width: 400px; margin: 30px auto 0 auto; text-align: left; }
+        .info-box h3 { margin-top: 0; font-size: 14px; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .info-box ul { padding-left: 20px; margin: 0; color: #64748b; font-size: 14px; }
+        .info-box ul li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+                <a href="/suporte.html" data-link="/suporte.html" style="text-decoration: none; padding: 10px 15px; background: #475569; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎧 Ajuda & Planos</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) { btn.style.background = '#10b981'; }
+                });
+            }, 50);
+        </script>
+
+        <div class="painel">
+            <h1>🎧 Central de Suporte e Assinatura</h1>
+            <p>Seja bem-vindo(a) ao seu sistema de gestão inteligente! Nossa missão é fazer você parar de perder dinheiro com caderninhos e planilhas confusas.</p>
+            
+            <img src="https://cdn-icons-png.flaticon.com/512/6009/6009864.png" alt="Suporte" style="width: 120px; opacity: 0.9; margin-bottom: 10px;">
+
+            <p><strong>A sua assinatura expirou ou você precisa de ajuda com alguma tela?</strong><br>Clique no botão abaixo para falar diretamente com o Arquiteto do Sistema.</p>
+            
+            <a href="https://api.whatsapp.com/send?phone=5532998052286&text=Ol%C3%A1%20Hiago!%20Preciso%20de%20ajuda%20com%20o%20SaaS%20de%20F%C3%A1bricas." target="_blank" class="btn-zap">
+                💬 Falar com Hiago no WhatsApp
+            </a>
+
+            <div class="info-box">
+                <h3>Vantagens do Plano Premium:</h3>
+                <ul>
+                    <li>🔐 Acesso blindado de qualquer celular ou PC.</li>
+                    <li>🎒 Fechamento de malas com Código de Barras.</li>
+                    <li>📊 Gráficos de comissão em tempo real.</li>
+                    <li>💾 Backup automático na Nuvem (nunca perca um dado).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const crachaString = localStorage.getItem('usuarioLogado');
+        if (!crachaString) window.location.href = '/login.html';
+        const usuario = JSON.parse(crachaString);
+        document.getElementById('nome-fabrica').innerText = `🏢 ${usuario.nome}`;
+
+        function sair() {
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>

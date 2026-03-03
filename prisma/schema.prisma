@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Mantemos SQLite para desenvolvimento local
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 🏢 TABELA MESTRA: EMPRESAS (OS SEUS CLIENTES SAAS)
+// ==========================================
+model Empresa {
+  id             Int      @id @default(autoincrement())
+  nomeFantasia   String   // Ex: "Confecções do Sogro", "Moda Silva"
+  dono           String   // Nome do responsável
+  telefone       String?
+  emailLogin     String   @unique // O email que a empresa usará para entrar no QG
+  senhaLogin     String   // A palavra-passe do QG
+  
+  // O MOTOR DO DINHEIRO (SaaS)
+  status         String   @default("TESTE") // Pode ser: TESTE, ATIVO, BLOQUEADO
+  dataExpiracao  DateTime // O dia em que a assinatura corta o acesso
+  criadoEm       DateTime @default(now())
+
+  // Relações: Tudo o que pertence a esta empresa
+  produtos       Produto[]
+  sacoleiros     Sacoleiro[]
+  malas          Mala[]
+  vendas         VendaSacoleiro[]
+}
+
+// ==========================================
+// 📦 TABELAS FILHAS (Agora isoladas por Empresa)
+// ==========================================
+model Produto {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int      // <-- O carimbo que diz de quem é esta peça
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  codigo      String?
+  produto     String
+  preco       Float
+  quantidade  Int
+  criadoEm    DateTime @default(now())
+}
+
+model Sacoleiro {
+  id           Int      @id @default(autoincrement())
+  empresaId    Int      // <-- O carimbo de qual fábrica ela pertence
+  empresa      Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  
+  nome         String
+  telefone     String?
+  usuarioApp   String?  @unique
+  senhaApp     String?
+  ultimaCompra DateTime?
+  criadoEm     DateTime @default(now())
+  
+  malas        Mala[]
+  vendas       VendaSacoleiro[]
+}
+
+model Mala {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int      
+  empresa        Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sacoleiroId    Int
+  sacoleiro      Sacoleiro @relation(fields: [sacoleiroId], references: [id], onDelete: Cascade)
+  
+  produtoNome    String   
+  total          Float
+  status         String   @default("PENDENTE")
+  dataVencimento DateTime?
+  assinatura     String?  // Base64
+  criadoEm       DateTime @default(now())
+}
+
+model VendaSacoleiro {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int      
+  empresa        Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  sacoleiroId    Int
+  sacoleiro      Sacoleiro @relation(fields: [sacoleiroId], references: [id], onDelete: Cascade)
+  
+  nomeVendedora  String
+  valor          Float
+  dataVencimento DateTime
+  assinatura     String?
+  status         String   @default("PENDENTE")
+  criadoEm       DateTime @default(now())
+}

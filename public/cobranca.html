@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Acertos e Cobranças</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #1f2937; text-align: center; }
+        
+        .cobranca-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 4px solid #ef4444; }
+        .cobranca-info h3 { margin: 0 0 5px 0; color: #1f2937; }
+        .cobranca-info p { margin: 0; color: #6b7280; font-size: 14px; }
+        .valor-pendente { font-weight: bold; color: #b91c1c; font-size: 22px; margin-bottom: 10px; }
+        
+        .botoes-acao { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 10px; }
+        button { border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; color: white; transition: 0.2s; }
+        
+        .btn-quitar { background: #10b981; } .btn-quitar:hover { background: #059669; }
+        .btn-parcial { background: #f59e0b; } .btn-parcial:hover { background: #d97706; }
+        .btn-zap { background: #25D366; } .btn-zap:hover { background: #128C7E; }
+        .btn-imprimir { background: #4b5563; } .btn-imprimir:hover { background: #374151; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+           <a href="/suporte.html" data-link="/suporte.html" style="text-decoration: none; padding: 10px 15px; background: #475569; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎧 Ajuda & Planos</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) {
+                        btn.style.background = '#10b981';
+                    }
+                });
+            }, 50);
+        </script>
+
+        <h1>📝 Acertos com Sacoleiros (Pendências)</h1>
+
+        <div id="lista-cobrancas">
+            <p style="text-align: center; color: #6b7280;">Buscando pepinos pendentes...</p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🛡️ O CRACHÁ BLINDADO
+        // ==========================================
+        const crachaString = localStorage.getItem('usuarioLogado');
+        if (!crachaString) window.location.href = '/login.html';
+        const usuario = JSON.parse(crachaString);
+        document.getElementById('nome-fabrica').innerText = `🏢 ${usuario.nome}`;
+
+        function sair() {
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '/login.html';
+        }
+
+        // ==========================================
+        // 🚀 FERRAMENTAS NÍVEL OURO
+        // ==========================================
+        function cobrarZap(nome, valor) {
+            const mensagem = `Olá, ${nome}! Tudo bem? Passando para avisar que sua mala atual tem um saldo pendente de R$ ${valor.toFixed(2)}. Você pode conferir os detalhes e o seu extrato no seu Portal do Sacoleiro! 🎒✨ Qualquer dúvida, estou à disposição!`;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensagem)}`;
+            window.open(url, '_blank');
+        }
+
+        function imprimirRomaneio(nome, resumo, valor, dataMala) {
+            const janela = window.open('', '', 'width=400,height=600');
+            janela.document.write(`
+                <html>
+                <head>
+                    <title>Romaneio - ${nome}</title>
+                    <style>
+                        body { font-family: 'Courier New', Courier, monospace; padding: 20px; font-size: 14px; color: #000; }
+                        h2 { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 20px; }
+                        .info { margin-bottom: 15px; }
+                        .total { font-size: 18px; font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin-top: 20px; text-align: center; }
+                        .assinatura { text-align: center; margin-top: 60px; }
+                        @media print { @page { margin: 0; } body { padding: 10px; } }
+                    </style>
+                </head>
+                <body>
+                    <h2>DISTRIBUIDORA<br>ROMANEIO DE SAÍDA</h2>
+                    <div class="info">
+                        <p><strong>Sacoleiro(a):</strong> ${nome}</p>
+                        <p><strong>Vencimento:</strong> ${dataMala}</p>
+                    </div>
+                    <p><strong>Conteúdo (Peças):</strong><br><br>${resumo}</p>
+                    <div class="total">VALOR A PAGAR: R$ ${valor.toFixed(2)}</div>
+                    <div class="assinatura">
+                        <p>____________________________________</p>
+                        <p>Assinatura do Sacoleiro</p>
+                    </div>
+                    <script>setTimeout(() => { window.print(); window.close(); }, 500);<\/script>
+                </body>
+                </html>
+            `);
+            janela.document.close();
+        }
+
+        // ==========================================
+        // 🥒 CARREGAR COBRANÇAS (CRACHÁ ATIVADO)
+        // ==========================================
+        async function carregarCobrancas() {
+            try {
+                // Busca sacoleiros da fábrica atual
+                const resClientes = await fetch('/clientes', { headers: { 'empresa-id': usuario.id }});
+                const sacoleiros = await resClientes.json();
+
+                const divLista = document.getElementById('lista-cobrancas');
+                divLista.innerHTML = '';
+                let temPepino = false;
+
+                for (let s of sacoleiros) {
+                    // Puxa as dívidas apenas deste sacoleiro
+                    const resDividas = await fetch(`/minhas-dividas/${s.id}`, { headers: { 'empresa-id': usuario.id }});
+                    const malas = await resDividas.json();
+
+                    malas.forEach(m => {
+                        temPepino = true;
+                        const dataVenc = m.dataVencimento ? new Date(m.dataVencimento).toLocaleDateString('pt-BR') : 'Sem data';
+                        const produtoEscapado = m.produtoNome.replace(/'/g, "\\'");
+                        const nomeEscapado = s.nome.replace(/'/g, "\\'");
+
+                        divLista.innerHTML += `
+                            <div class="cobranca-card">
+                                <div class="cobranca-info" style="width: 50%;">
+                                    <h3>👤 ${s.nome}</h3>
+                                    <p>📦 Resumo: ${m.produtoNome}</p>
+                                    <p>📅 Vencimento: ${dataVenc}</p>
+                                </div>
+                                <div style="text-align: right; width: 50%;">
+                                    <div class="valor-pendente">R$ ${m.total.toFixed(2)}</div>
+                                    
+                                    <div class="botoes-acao">
+                                        <button class="btn-zap" onclick="cobrarZap('${nomeEscapado}', ${m.total})">💬 Zap</button>
+                                        <button class="btn-imprimir" onclick="imprimirRomaneio('${nomeEscapado}', '${produtoEscapado}', ${m.total}, '${dataVenc}')">🖨️ Romaneio</button>
+                                        <button class="btn-parcial" onclick="pagamentoParcial(${m.id}, ${m.total})">💵 Parcial</button>
+                                        <button class="btn-quitar" onclick="quitarDivida(${m.id})">✅ Quitar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (!temPepino) {
+                    divLista.innerHTML = '<p style="text-align: center; color: #059669; font-weight: bold; font-size: 18px;">🎉 Tudo limpo! Nenhum pepino pendente.</p>';
+                }
+            } catch (erro) {
+                alert("Erro ao puxar dados blindados.");
+            }
+        }
+
+        // ==========================================
+        // 💰 RECEBER DINHEIRO (CRACHÁ ATIVADO)
+        // ==========================================
+        async function pagamentoParcial(id, valorAtual) {
+            const valorDigitado = prompt(`A dívida é de R$ ${valorAtual.toFixed(2)}.\nQuanto o sacoleiro está pagando AGORA? (Use ponto, ex: 150.50)`);
+            if (!valorDigitado) return;
+            const valorPago = parseFloat(valorDigitado.replace(',', '.'));
+            
+            if (isNaN(valorPago) || valorPago <= 0) { alert("⚠️ Valor inválido!"); return; }
+            if (valorPago > valorAtual) { alert("❌ Valor maior que a dívida!"); return; }
+
+            const resposta = await fetch(`/cobranca/${id}/parcial`, {
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json', 'empresa-id': usuario.id }, 
+                body: JSON.stringify({ valorPago: valorPago })
+            });
+            
+            if (resposta.ok) { carregarCobrancas(); } else { alert("Erro na requisição."); }
+        }
+
+        async function quitarDivida(id) {
+            if (confirm("Confirmar recebimento TOTAL? O pepino vai sumir da tela.")) {
+                const resposta = await fetch(`/cobranca/${id}/quitar`, { 
+                    method: 'PUT',
+                    headers: { 'empresa-id': usuario.id }
+                });
+                if (resposta.ok) { carregarCobrancas(); } else { alert("Erro ao quitar."); }
+            }
+        }
+
+        carregarCobrancas();
+    </script>
+</body>
+</html>

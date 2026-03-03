@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Relatórios e Gráficos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { text-align: center; color: #1f2937; margin-bottom: 5px; }
+        p.subtitulo { text-align: center; color: #6b7280; margin-top: 0; margin-bottom: 30px; font-size: 14px; }
+        
+        .painel-geral { background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; text-align: center; }
+        .dado-geral h3 { margin: 0 0 5px 0; font-size: 14px; color: #a5b4fc; text-transform: uppercase; }
+        .dado-geral .valor { font-size: 32px; font-weight: 900; margin: 0; }
+
+        .grafico-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+
+        .grid-sacoleiras { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .grid-sacoleiras { grid-template-columns: 1fr 1fr; } }
+        .card-sacoleira { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .header-card { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; margin-bottom: 15px; }
+        .badge-total { background: #fee2e2; color: #b91c1c; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        
+        .bloco-calculo { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; }
+        .resultados { display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 15px; margin-top: 10px; }
+        .resultado-item { text-align: center; flex: 1; }
+        .resultado-item span { display: block; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; }
+        .resultado-item .valor-comissao { font-size: 20px; font-weight: 900; color: #10b981; }
+        .resultado-item .valor-fabrica { font-size: 20px; font-weight: 900; color: #4f46e5; }
+        .input-taxa { width: 100%; padding: 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 16px; font-weight: bold; text-align: center; outline: none;}
+        .input-taxa:focus { border-color: #4f46e5; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="botoes-menu">
+                <a href="/" data-link="/" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📦 Estoque</a>
+                <a href="/kits.html" data-link="/kits.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎒 Montar Kits</a>
+                <a href="/cobranca.html" data-link="/cobranca.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📝 Acertos</a>
+                <a href="/vendas.html" data-link="/vendas.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">💰 Venda Direta</a>
+                <a href="/clientes.html" data-link="/clientes.html" style="text-decoration: none; padding: 10px 15px; background: #2563eb; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">👨‍💼 Sacoleiros</a>
+                <a href="/relatorios.html" data-link="/relatorios.html" style="text-decoration: none; padding: 10px 15px; background: #8b5cf6; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">📊 Relatórios</a>
+            <a href="/suporte.html" data-link="/suporte.html" style="text-decoration: none; padding: 10px 15px; background: #475569; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s;">🎧 Ajuda & Planos</a>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <span id="nome-fabrica" style="font-weight: bold; color: #2563eb; margin-right: 15px;">Fábrica</span>
+                <button onclick="sair()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Sair</button>
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                const path = window.location.pathname;
+                document.querySelectorAll('#botoes-menu a').forEach(btn => {
+                    const link = btn.getAttribute('data-link');
+                    if(path === link || (path === '/index.html' && link === '/')) {
+                        btn.style.background = '#10b981'; 
+                    }
+                });
+            }, 50);
+        </script>
+
+        <h1>📊 Relatórios e Dashboard</h1>
+        <p class="subtitulo">Acompanhe a mercadoria na rua e defina comissões.</p>
+
+        <div class="painel-geral">
+            <div class="dado-geral">
+                <h3>Total em Mercadoria na Rua</h3>
+                <p class="valor" id="total-geral-rua">R$ 0,00</p>
+            </div>
+            <div class="dado-geral">
+                <h3>Vendedoras Ativas</h3>
+                <p class="valor" id="total-vendedoras">0</p>
+            </div>
+        </div>
+
+        <div class="grafico-box">
+            <h3 style="margin-top: 0; color: #374151; text-align: center;">📈 Capital na Rua por Sacoleira</h3>
+            <canvas id="meuGrafico" height="100"></canvas>
+        </div>
+
+        <div class="grid-sacoleiras" id="lista-relatorios">
+            <p style="text-align: center; grid-column: 1 / -1; color: #6b7280;">Carregando os dados da rua...</p>
+        </div>
+    </div>
+
+    <script>
+        const crachaString = localStorage.getItem('usuarioLogado');
+        if (!crachaString) window.location.href = '/login.html';
+        const usuario = JSON.parse(crachaString);
+        document.getElementById('nome-fabrica').innerText = `🏢 ${usuario.nome}`;
+
+        let totalGeralRua = 0;
+        let nomesGrafico = [];
+        let valoresGrafico = [];
+
+        async function carregarRelatorios() {
+            const divLista = document.getElementById('lista-relatorios'); 
+            try {
+                // AQUI ESTAVA O SEGREDO QUE SUMIU!
+                const resClientes = await fetch('/clientes', { headers: { 'empresa-id': usuario.id }});
+                const listaDeSacoleiras = await resClientes.json();
+                
+                document.getElementById('total-vendedoras').innerText = listaDeSacoleiras.length;
+                divLista.innerHTML = '';
+
+                for (let s of listaDeSacoleiras) {
+                    const resDividas = await fetch(`/minhas-dividas/${s.id}`, { headers: { 'empresa-id': usuario.id }});
+                    const malas = await resDividas.json();
+                    
+                    let somaMalasPendente = 0;
+                    malas.forEach(mala => { somaMalasPendente += mala.total; });
+
+                    totalGeralRua += somaMalasPendente;
+
+                    if (somaMalasPendente > 0) {
+                        gerarCardSacoleira(s, somaMalasPendente, divLista);
+                        nomesGrafico.push(s.nome);
+                        valoresGrafico.push(somaMalasPendente);
+                    }
+                }
+
+                document.getElementById('total-geral-rua').innerText = `R$ ${totalGeralRua.toFixed(2)}`;
+
+                if (divLista.innerHTML === '') {
+                    divLista.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; color: #6b7280;">Nenhuma mercadoria pendente na rua.</p>';
+                    document.querySelector('.grafico-box').style.display = 'none'; 
+                } else {
+                    document.querySelector('.grafico-box').style.display = 'block';
+                    gerarGrafico(); 
+                }
+
+            } catch (erro) {
+                console.error("🚨 O ERRO REAL FOI:", erro);
+                divLista.innerHTML = '<p style="text-align: center; color: red;">Erro ao puxar dados da rua.</p>';
+            }
+        }
+
+        function gerarCardSacoleira(sacoleira, totalPendente, container) {
+            const inputVendidoId = `vendido-${sacoleira.id}`;
+            const inputTaxaId = `taxa-${sacoleira.id}`;
+            const comissaoId = `comissao-${sacoleira.id}`;
+            const fabricaId = `fabrica-${sacoleira.id}`;
+
+            const html = `
+                <div class="card-sacoleira">
+                    <div class="header-card">
+                        <h2 style="margin: 0; font-size: 18px;">👤 ${sacoleira.nome}</h2>
+                        <span class="badge-total">Lhe deve em Roupas: R$ ${totalPendente.toFixed(2)}</span>
+                    </div>
+                    <div class="bloco-calculo">
+                        <p style="font-size: 12px; color: #6b7280; margin-top: 0; margin-bottom: 10px;">Simulador de Acerto (Baseado no que foi vendido):</p>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px; font-weight: bold; color: #475569;">Valor Vendido (R$):</label>
+                                <input type="number" id="${inputVendidoId}" class="input-taxa" placeholder="Ex: 500" 
+                                       oninput="calcularLucro('${inputVendidoId}', '${inputTaxaId}', '${comissaoId}', '${fabricaId}')">
+                            </div>
+                            <div style="width: 80px;">
+                                <label style="font-size: 12px; font-weight: bold; color: #475569;">Com %:</label>
+                                <input type="number" id="${inputTaxaId}" class="input-taxa" value="30" 
+                                       oninput="calcularLucro('${inputVendidoId}', '${inputTaxaId}', '${comissaoId}', '${fabricaId}')">
+                            </div>
+                        </div>
+                        
+                        <div class="resultados">
+                            <div class="resultado-item" style="border-right: 1px solid #e2e8f0;">
+                                <span>Comissão Sacoleiro</span>
+                                <div class="valor-comissao" id="${comissaoId}">R$ 0,00</div>
+                            </div>
+                            <div class="resultado-item">
+                                <span>Líquido do Chefe</span>
+                                <div class="valor-fabrica" id="${fabricaId}">R$ 0,00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        }
+
+        function calcularLucro(inputVendidoId, inputTaxaId, comissaoId, fabricaId) {
+            let valorVendido = parseFloat(document.getElementById(inputVendidoId).value) || 0;
+            let taxa = parseFloat(document.getElementById(inputTaxaId).value) || 0;
+            
+            if (taxa < 0) taxa = 0; if (taxa > 100) taxa = 100;
+
+            const valorComissao = valorVendido * (taxa / 100);
+            const valorFabrica = valorVendido - valorComissao;
+
+            document.getElementById(comissaoId).innerText = `R$ ${valorComissao.toFixed(2)}`;
+            document.getElementById(fabricaId).innerText = `R$ ${valorFabrica.toFixed(2)}`;
+        }
+
+        function gerarGrafico() {
+            const ctx = document.getElementById('meuGrafico').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar', 
+                data: {
+                    labels: nomesGrafico,
+                    datasets: [{
+                        label: 'Valor na Rua (R$)',
+                        data: valoresGrafico,
+                        backgroundColor: '#8b5cf6', 
+                        borderRadius: 6,
+                        maxBarThickness: 60 
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function sair() {
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = '/login.html';
+        }
+
+        carregarRelatorios();
+    </script>
+</body>
+</html>
