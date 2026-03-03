@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal Pro - Sacoleiro</title>
+    <style>
+        :root { --primaria: #4f46e5; --sucesso: #10b981; --alerta: #f59e0b; --perigo: #ef4444; --fundo: #f3f4f6; --texto-escuro: #1f2937; --texto-claro: #6b7280; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--fundo); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; color: var(--texto-escuro); overflow-x: hidden; }
+        
+        .header { background: var(--primaria); color: white; padding: 20px 15px 15px 15px; text-align: center; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); z-index: 10; position: relative; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { margin: 4px 0 0 0; font-size: 13px; opacity: 0.9; }
+
+        .container { flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 90px; }
+
+        #tela-login { background: white; padding: 30px 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; margin-top: 20px; }
+        .input-app { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 12px; box-sizing: border-box; font-size: 16px; outline: none; transition: 0.2s; background: #f9fafb; }
+        .input-app:focus { border-color: var(--primaria); background: white; }
+        .btn-entrar { background: var(--primaria); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 18px; cursor: pointer; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); }
+
+        .aba-conteudo { display: none; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .grid-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card-dash { background: white; padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e5e7eb; }
+        .card-dash.destaque { grid-column: span 2; border-left: 5px solid var(--sucesso); }
+        .card-dash.fabrica { border-left: 5px solid var(--perigo); }
+        .card-dash.rua { border-left: 5px solid var(--alerta); }
+        .card-dash h3 { margin: 0; font-size: 12px; color: var(--texto-claro); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-dash .valor { font-size: 22px; font-weight: 800; margin: 5px 0 0 0; color: var(--texto-escuro); }
+        .card-dash.destaque .valor { font-size: 32px; color: var(--sucesso); }
+
+        .form-venda { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--primaria); }
+        .label-legal { font-size: 12px; font-weight: bold; color: var(--texto-claro); display: block; margin-bottom: 5px; margin-top: 15px; }
+        .caixa-texto-legal { background: #fdfdea; border: 1px solid #fde047; padding: 15px; border-radius: 8px; font-size: 11px; color: #854d0e; text-align: justify; line-height: 1.5; margin-top: 15px; margin-bottom: 15px; }
+        
+        #canvas-assinatura { background: #f9fafb; border: 2px dashed #9ca3af; border-radius: 10px; width: 100%; height: 250px; touch-action: none; cursor: crosshair; }
+        .aviso-rotacao { background: #fff8f1; border: 1px solid #fed7aa; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px; color: #c2410c; text-align: center; }
+        .btn-salvar-venda { background: var(--sucesso); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-top: 15px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); }
+
+        /* LISTA DE RECEBIMENTOS E MALA */
+        .card-recebimento { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid var(--alerta); }
+        .card-mala { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid var(--primaria); }
+        .item-peca { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+        .item-peca:last-child { border-bottom: none; }
+        .qtd-badge { background: #e0e7ff; color: var(--primaria); font-weight: bold; padding: 3px 8px; border-radius: 6px; font-size: 12px; margin-right: 10px; }
+        
+        .botoes-receber { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-acao { flex: 1; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; color: white; }
+
+        .menu-inferior { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: none; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 100; padding: 5px 10px; box-sizing: border-box; }
+        .menu-item { flex: 1; text-align: center; padding: 10px 0; color: #9ca3af; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: 0.2s; border-radius: 10px; }
+        .menu-item .icone { font-size: 20px; }
+        .menu-item .texto { font-size: 10px; font-weight: 700; }
+        .menu-item.ativo { color: var(--primaria); }
+        .menu-item.ativo .icone { transform: scale(1.1); }
+        .menu-item.btn-vender { position: relative; top: -15px; background: var(--primaria); color: white; width: 55px; height: 55px; flex: none; border-radius: 50%; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4); justify-content: center; }
+        .menu-item.btn-vender .icone { font-size: 24px; }
+        .menu-item.btn-vender .texto { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>✨ Portal Pro</h1>
+        <p id="subtitulo-header">Gestão de Malas e Vendas</p>
+    </div>
+
+    <div class="container">
+        <div id="tela-login">
+            <h2>Aceder à minha conta</h2>
+            <input type="text" id="usuarioApp" class="input-app" placeholder="👤 Utilizador">
+            <input type="password" id="senhaApp" class="input-app" placeholder="🔑 Palavra-passe">
+            <button class="btn-entrar" onclick="fazerLogin()">Entrar</button>
+        </div>
+
+        <div id="aba-inicio" class="aba-conteudo">
+            <div class="grid-dashboard">
+                <div class="card-dash destaque">
+                    <h3>💰 Meu Lucro Estimado</h3>
+                    <p class="valor" id="dash-lucro">R$ 0,00</p>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #9ca3af;">(Baseado no que tem a receber)</p>
+                </div>
+                <div class="card-dash fabrica">
+                    <h3>🏢 Devo à Fábrica</h3>
+                    <p class="valor" style="color: var(--perigo);" id="dash-fabrica">R$ 0,00</p>
+                </div>
+                <div class="card-dash rua">
+                    <h3>👥 A Receber na Rua</h3>
+                    <p class="valor" style="color: var(--alerta);" id="dash-rua">R$ 0,00</p>
+                </div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 15px; margin-top: 15px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">🔔 Avisos Rápidos</h3>
+                <p style="margin: 0; font-size: 13px; color: var(--texto-claro);">Nenhum vencimento para hoje.</p>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="sairApp()" style="background: transparent; border: 1px solid var(--perigo); color: var(--perigo); padding: 8px 20px; border-radius: 20px; font-weight: bold;">🚪 Terminar Sessão</button>
+            </div>
+        </div>
+
+        <div id="aba-mala" class="aba-conteudo">
+            <h2 style="font-size: 18px; margin-top: 0;">📦 Estoque da Minha Mala</h2>
+            <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                <p style="margin: 0; font-size: 13px; color: var(--texto-claro);">Aqui estão as peças que estão atualmente consigo (da última mala pendente com a fábrica).</p>
+            </div>
+            
+            <div id="lista-estoque-mala">
+                <p style="text-align: center; color: var(--texto-claro); font-size: 14px;">A carregar a sua mala...</p>
+            </div>
+        </div>
+
+        <div id="aba-clientes" class="aba-conteudo">
+            <h2 style="font-size: 18px; margin-top: 0;">👥 Minhas Vendedoras</h2>
+            <input type="text" id="busca-cliente-rua" placeholder="🔍 Procurar vendedora..." style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; outline: none;" oninput="filtrarAgenda()">
+            <div id="lista-agenda-crm"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Carregando...</p></div>
+        </div>
+
+        <div id="aba-vender" class="aba-conteudo">
+            <h2 style="font-size: 18px; margin-top: 0;">🛒 Gerar Promissória Digital</h2>
+            
+            <div class="form-venda">
+                <label class="label-legal">Dados da Cliente (Devedora):</label>
+                <input type="text" id="nomeVenda" class="input-app" style="margin-bottom: 10px;" placeholder="Nome Completo">
+                <input type="number" id="cpfVenda" class="input-app" style="margin-bottom: 10px;" placeholder="CPF (Apenas números)">
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;"><label class="label-legal">Dívida (R$):</label><input type="number" id="valorVenda" class="input-app" style="margin-bottom: 10px;" placeholder="Ex: 150.00" step="0.01"></div>
+                    <div style="flex: 1;"><label class="label-legal">Vencimento:</label><input type="date" id="dataVenda" class="input-app" style="margin-bottom: 10px;"></div>
+                </div>
+
+                <div class="caixa-texto-legal" id="texto-promissoria">Preencha os dados acima para gerar o termo.</div>
+
+                <label class="label-legal">✍️ Assinatura Eletrónica no Ecrã:</label>
+                
+                <div class="aviso-rotacao">💡 <b>Dica:</b> Se a cliente preferir, deite o telemóvel <b>ANTES</b> de começar a assinar para ter um quadro mais largo!</div>
+
+                <canvas id="canvas-assinatura"></canvas>
+                <button onclick="limparAssinatura()" style="background: transparent; border: none; color: var(--perigo); font-weight: bold; width: 100%; padding: 10px; margin-top: 5px;">🧹 Limpar Ecrã</button>
+
+                <button class="btn-salvar-venda" onclick="finalizarVenda()">✅ Concordar e Assinar</button>
+            </div>
+        </div>
+
+        <div id="aba-receber" class="aba-conteudo">
+            <h2 style="font-size: 18px; margin-top: 0;">💸 Valores a Receber</h2>
+            <div id="lista-recebimentos"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Buscando dívidas...</p></div>
+        </div>
+
+    </div>
+
+    <div class="menu-inferior" id="menu-inferior">
+        <div class="menu-item ativo" id="btn-nav-inicio" onclick="mudarAba('inicio')"><span class="icone">🏠</span><span class="texto">Início</span></div>
+        <div class="menu-item" id="btn-nav-mala" onclick="mudarAba('mala')"><span class="icone">📦</span><span class="texto">Mala</span></div>
+        <div class="menu-item btn-vender" id="btn-nav-vender" onclick="mudarAba('vender')"><span class="icone">➕</span><span class="texto">Vender</span></div>
+        <div class="menu-item" id="btn-nav-clientes" onclick="mudarAba('clientes')"><span class="icone">👥</span><span class="texto">Clientes</span></div>
+        <div class="menu-item" id="btn-nav-receber" onclick="mudarAba('receber')"><span class="icone">💰</span><span class="texto">Receber</span></div>
+    </div>
+
+    <script>
+        // ==========================================
+        // NAVEGAÇÃO E AUTENTICAÇÃO
+        // ==========================================
+        function checarSessao() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            if (sacoleiro) {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('menu-inferior').style.display = 'flex';
+                document.getElementById('subtitulo-header').innerText = `Bem-vindo(a), ${sacoleiro.nome}!`;
+                mudarAba('inicio');
+            } else {
+                document.getElementById('tela-login').style.display = 'block';
+                document.getElementById('menu-inferior').style.display = 'none';
+                ['inicio', 'mala', 'clientes', 'vender', 'receber'].forEach(id => document.getElementById(`aba-${id}`).style.display = 'none');
+            }
+        }
+
+        async function fazerLogin() {
+            const usuario = document.getElementById('usuarioApp').value;
+            const senha = document.getElementById('senhaApp').value;
+            if (!usuario || !senha) return alert("⚠️ Preencha os dados!");
+            const resposta = await fetch('/login-app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, senha }) });
+            if (resposta.ok) {
+                const dados = await resposta.json();
+                localStorage.setItem('sacoleiroLogado', JSON.stringify(dados.sacoleira));
+                checarSessao();
+            } else { alert("❌ Utilizador ou palavra-passe incorretos!"); }
+        }
+
+        function sairApp() { localStorage.removeItem('sacoleiroLogado'); checarSessao(); }
+
+        function mudarAba(abaDestino) {
+            ['inicio', 'mala', 'clientes', 'vender', 'receber'].forEach(aba => {
+                document.getElementById(`aba-${aba}`).style.display = 'none';
+                document.getElementById(`btn-nav-${aba}`).classList.remove('ativo');
+            });
+            document.getElementById(`aba-${abaDestino}`).style.display = 'block';
+            document.getElementById(`btn-nav-${abaDestino}`).classList.add('ativo');
+
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            if (sacoleiro) {
+                if (abaDestino === 'inicio') carregarDashboardFinanceiro(sacoleiro.id);
+                if (abaDestino === 'mala') carregarMinhaMala(); // NOVA FUNÇÃO AQUI!
+                if (abaDestino === 'clientes') carregarAgendaCRM();
+                if (abaDestino === 'vender') setTimeout(redimensionarCanvas, 200);
+                if (abaDestino === 'receber') carregarRecebimentos(sacoleiro.id); 
+            }
+        }
+
+        // ==========================================
+        // DASHBOARD & AGENDA
+        // ==========================================
+        async function carregarDashboardFinanceiro(sacoleiroId) {
+            try {
+                const resFabrica = await fetch(`/minhas-dividas/${sacoleiroId}`);
+                const dividasFabrica = await resFabrica.json();
+                let somaDevoFabrica = 0; dividasFabrica.forEach(d => somaDevoFabrica += d.total);
+
+                const resRua = await fetch(`/vendas-vendedoras/${sacoleiroId}`);
+                const promissoriasRua = await resRua.json();
+                let somaReceberRua = 0; promissoriasRua.forEach(p => { if(p.status !== 'PAGO') somaReceberRua += p.valor; });
+
+                let lucroEstimado = somaReceberRua - somaDevoFabrica;
+                if (lucroEstimado < 0) lucroEstimado = 0;
+
+                document.getElementById('dash-fabrica').innerText = `R$ ${somaDevoFabrica.toFixed(2)}`;
+                document.getElementById('dash-rua').innerText = `R$ ${somaReceberRua.toFixed(2)}`;
+                document.getElementById('dash-lucro').innerText = `R$ ${lucroEstimado.toFixed(2)}`;
+            } catch (erro) { console.log("Erro:", erro); }
+        }
+
+        let agendaGlobal = [];
+        async function carregarAgendaCRM() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            if (!sacoleiro) return;
+            const resposta = await fetch(`/minhas-clientes-crm/${sacoleiro.id}`);
+            agendaGlobal = await resposta.json();
+            const divLista = document.getElementById('lista-agenda-crm');
+            divLista.innerHTML = '';
+            if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma cliente encontrada.</p>`;
+agendaGlobal.forEach(c => {
+                divLista.innerHTML += `
+                    <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; color: var(--texto-escuro);">👤 ${c.nome}</h4>
+                                <p style="margin: 0; font-size: 11px; color: var(--texto-claro);">📍 ${c.endereco}</p>
+                            </div>
+                            <span style="background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">
+                                🗓️ Dia ${c.diaCobranca || '--'}
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">💬 Zap</button>
+                            <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco + ", Juiz de Fora, MG")}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">📍 Rota</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        function filtrarAgenda() { 
+            // Filtragem simples
+        }
+
+        // ==========================================
+        // ABA 2: O ESTOQUE DA MALA (CORTANDO O TEXTO)
+        // ==========================================
+        async function carregarMinhaMala() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            if (!sacoleiro) return;
+
+            try {
+                const resposta = await fetch(`/minhas-dividas/${sacoleiro.id}`);
+                const malas = await resposta.json();
+                const divLista = document.getElementById('lista-estoque-mala');
+                divLista.innerHTML = '';
+
+                if (malas.length === 0) {
+                    divLista.innerHTML = `
+                        <div style="text-align: center; padding: 30px 10px; background: white; border-radius: 15px; border: 1px dashed #d1d5db;">
+                            <span style="font-size: 30px;">🎒</span>
+                            <p style="color: var(--texto-claro); font-size: 14px; margin-bottom: 0;">A sua mala está vazia ou já pagou tudo à fábrica!</p>
+                        </div>`;
+                    return;
+                }
+
+                malas.forEach(mala => {
+                    // O motor corta o texto "2x Blusa + 1x Calça" onde tem " + "
+                    const itens = mala.produtoNome ? mala.produtoNome.split(' + ') : [];
+                    let htmlItens = '';
+                    
+                    itens.forEach(item => {
+                        // Corta pelo "x" para pintar o número de cor diferente
+                        const partes = item.split('x'); 
+                        const qtd = partes[0] ? partes[0].trim() : '1';
+                        const nomePeca = partes[1] ? partes[1].trim() : item;
+
+                        htmlItens += `
+                            <div class="item-peca">
+                                <span class="qtd-badge">${qtd}x</span>
+                                <span style="font-size: 14px; color: var(--texto-escuro); font-weight: 500;">${nomePeca}</span>
+                            </div>
+                        `;
+                    });
+
+                    divLista.innerHTML += `
+                        <div class="card-mala">
+                            <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px;">
+                                <span style="color: var(--texto-claro);">📅 ${new Date(mala.criadoEm).toLocaleDateString('pt-BR')}</span>
+                                <span style="color: var(--perigo);">R$ ${mala.total.toFixed(2)}</span>
+                            </h4>
+                            ${htmlItens}
+                        </div>
+                    `;
+                });
+
+            } catch (erro) {
+                console.log("Erro ao carregar mala:", erro);
+            }
+        }
+
+        // ==========================================
+        // ASSINATURA DA PROMISSÓRIA
+        // ==========================================
+        const canvas = document.getElementById('canvas-assinatura');
+        const ctx = canvas.getContext('2d');
+        let desenhando = false;
+        let ultimaLarguraTela = window.innerWidth; 
+
+        function redimensionarCanvas() {
+            const containerInfo = canvas.parentElement.getBoundingClientRect();
+            canvas.width = containerInfo.width - 40; 
+            canvas.height = 250; 
+            ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#1f2937';
+        }
+
+        window.addEventListener('resize', () => { 
+            if(document.getElementById('aba-vender').style.display === 'block' && window.innerWidth !== ultimaLarguraTela) {
+                ultimaLarguraTela = window.innerWidth; redimensionarCanvas(); 
+            }
+        });
+
+        function getPosicao(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX); const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { desenhando = true; ctx.beginPath(); ctx.moveTo(getPosicao(e).x, getPosicao(e).y); });
+        canvas.addEventListener('mousemove', (e) => { if(desenhando) { ctx.lineTo(getPosicao(e).x, getPosicao(e).y); ctx.stroke(); }});
+        canvas.addEventListener('mouseup', () => desenhando = false);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); desenhando = true; ctx.beginPath(); ctx.moveTo(getPosicao(e).x, getPosicao(e).y); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(desenhando) { ctx.lineTo(getPosicao(e).x, getPosicao(e).y); ctx.stroke(); }}, {passive: false});
+        canvas.addEventListener('touchend', () => desenhando = false);
+
+        function limparAssinatura() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        const inputsVenda = ['nomeVenda', 'valorVenda', 'dataVenda', 'cpfVenda'];
+        inputsVenda.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                const nome = document.getElementById('nomeVenda').value || "_________________";
+                const cpf = document.getElementById('cpfVenda').value || "___________";
+                const valor = document.getElementById('valorVenda').value || "0.00";
+                const data = document.getElementById('dataVenda').value;
+                document.getElementById('texto-promissoria').innerHTML = `
+                    <b>NOTA PROMISSÓRIA</b><br><br>
+                    Vencimento: <b>${data ? new Date(data + "T12:00:00Z").toLocaleDateString('pt-BR') : "___/___/_____"}</b><br>
+                    Valor: <b>R$ ${parseFloat(valor).toFixed(2)}</b><br><br>
+                    No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia especificada acima.<br><br>
+                    Emitente: <b>${nome}</b><br>CPF: <b>${cpf}</b><br>
+                    Local de Emissão: Juiz de Fora - MG<br>
+                    Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}
+                `;
+            });
+        });
+
+        async function finalizarVenda() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            const nome = document.getElementById('nomeVenda').value; const cpf = document.getElementById('cpfVenda').value;
+            const valor = document.getElementById('valorVenda').value; const data = document.getElementById('dataVenda').value;
+            if (!nome || !valor || !data || !cpf) return alert("⚠️ Preencha Nome, CPF, Valor e Data!");
+            
+            const canvasVazio = document.createElement('canvas'); canvasVazio.width = canvas.width; canvasVazio.height = canvas.height;
+            let assinatura = canvas.toDataURL() !== canvasVazio.toDataURL() ? canvas.toDataURL() : null;
+            if(!assinatura) return alert("⚠️ A cliente precisa assinar na tela!");
+
+            const resposta = await fetch('/vendas-vendedoras', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sacoleiroId: sacoleiro.id, nomeVendedora: `${nome} (CPF: ${cpf})`, valor, dataVencimento: data, assinatura })
+            });
+            if (resposta.ok) {
+                alert("✅ Promissória salva!");
+                document.getElementById('nomeVenda').value = ''; document.getElementById('cpfVenda').value = ''; document.getElementById('valorVenda').value = ''; document.getElementById('dataVenda').value = '';
+                limparAssinatura(); mudarAba('inicio');
+            }
+        }
+
+        // ==========================================
+        // ABA 5: RECEBIMENTOS E GERADOR DE PDF
+        // ==========================================
+        async function carregarRecebimentos(id) {
+            const resposta = await fetch(`/vendas-vendedoras/${id}`);
+            const promissorias = await resposta.json();
+            const divLista = document.getElementById('lista-recebimentos');
+            divLista.innerHTML = '';
+
+            const pendentes = promissorias.filter(p => p.status === 'PENDENTE');
+            if (pendentes.length === 0) return divLista.innerHTML = '<p style="text-align:center; color: var(--sucesso); font-weight: bold;">Tudo recebido! Zero calotes! 🎉</p>';
+
+            pendentes.forEach(p => {
+                const assinaturaSegura = p.assinatura ? p.assinatura.replace(/'/g, "\\'") : "";
+                const nomeSeguro = p.nomeVendedora.replace(/'/g, "\\'");
+
+                divLista.innerHTML += `
+                    <div class="card-recebimento">
+                        <h4 style="margin: 0 0 5px 0;">👤 ${p.nomeVendedora}</h4>
+                        <p style="margin: 0; font-size: 12px; color: var(--texto-claro);">📅 Vencimento: <b>${new Date(p.dataVencimento).toLocaleDateString('pt-BR')}</b></p>
+                        <div style="font-size: 20px; font-weight: bold; color: var(--perigo); margin-top: 5px;">R$ ${p.valor.toFixed(2)}</div>
+                        
+                        <div class="botoes-receber">
+                            <button class="btn-acao" style="background: var(--primaria);" onclick="gerarPDFPromissoria('${nomeSeguro}', ${p.valor}, '${p.dataVencimento}', '${assinaturaSegura}', '${p.criadoEm}')">🖨️ Gerar PDF</button>
+                            <button class="btn-acao" style="background: var(--sucesso);" onclick="quitarRecebimento(${p.id})">✅ Receber (Baixa)</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function quitarRecebimento(idPromissoria) {
+            if (confirm("Confirmar que a cliente pagou essa nota?")) {
+                const res = await fetch(`/vendas-vendedoras/${idPromissoria}/quitar`, { method: 'PUT' });
+                if (res.ok) {
+                    const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+                    carregarRecebimentos(sacoleiro.id);
+                }
+            }
+        }
+
+        function gerarPDFPromissoria(nomeComCpf, valor, dataVencimento, assinaturaBase64, dataEmissao) {
+            const dataVenc = new Date(dataVencimento).toLocaleDateString('pt-BR');
+            const dataEmis = new Date(dataEmissao).toLocaleDateString('pt-BR');
+            
+            const janela = window.open('', '', 'width=800,height=600');
+            janela.document.write(`
+                <html>
+                <head>
+                    <title>Promissória - ${nomeComCpf}</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; padding: 40px; color: #000; }
+                        .borda { border: 3px solid #000; padding: 30px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+                        h1 { text-align: center; font-size: 24px; text-decoration: underline; margin-bottom: 30px; letter-spacing: 2px; }
+                        .info-topo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+                        .texto { font-size: 18px; line-height: 1.8; text-align: justify; margin-bottom: 40px; }
+                        .assinatura { text-align: center; margin-top: 60px; }
+                        .assinatura img { max-width: 300px; max-height: 150px; border-bottom: 1px solid #000; display: block; margin: 0 auto; }
+                        .linha-assinatura { border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 5px; }
+                        @media print { @page { margin: 0; } body { padding: 20px; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="borda">
+                        <h1>NOTA PROMISSÓRIA</h1>
+                        <div class="info-topo">
+                            <div><strong>Vencimento:</strong> ${dataVenc}</div>
+                            <div><strong>Valor:</strong> R$ ${valor.toFixed(2)}</div>
+                        </div>
+                        <div class="texto">
+                            No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia de <b>R$ ${valor.toFixed(2)}</b>.<br><br>
+                            Emitente: <b>${nomeComCpf}</b><br>
+                            Local de Emissão: Juiz de Fora - MG<br>
+                            Data de Emissão: ${dataEmis}
+                        </div>
+                        <div class="assinatura">
+                            ${assinaturaBase64 ? `<img src="${assinaturaBase64}">` : '<div class="linha-assinatura"></div>'}
+                            <div class="linha-assinatura">Assinatura do Emitente</div>
+                        </div>
+                    </div>
+                    <script>
+                        setTimeout(() => { window.print(); window.close(); }, 800);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            janela.document.close();
+        }
+
+        checarSessao();
+    </script>
+</body>
+</html>

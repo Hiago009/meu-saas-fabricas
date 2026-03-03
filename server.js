@@ -207,6 +207,49 @@ app.put('/cobranca/:id/quitar', verificarCracha, async (req, res) => {
 });
 
 // ==========================================
+// 🔐 LOGIN DO PORTAL DO SACOLEIRO (APP)
+// ==========================================
+app.post('/login-app', async (req, res) => {
+    const { usuario, senha } = req.body;
+    try {
+        // Busca no banco um Sacoleiro que tenha esse nome e essa senha exata
+        // ATENÇÃO: Se a sua tabela se chamar "sacoleira" em vez de "cliente", troque ali embaixo!
+        const sacoleiro = await prisma.cliente.findFirst({
+            where: {
+                nome: usuario,
+                senha: senha
+            }
+        });
+
+        if (sacoleiro) {
+            res.json({ sacoleira: sacoleiro }); // Sucesso! Devolve os dados dele para o celular
+        } else {
+            res.status(401).json({ erro: "Usuário ou senha incorretos" });
+        }
+    } catch (erro) {
+        console.error("Erro no login do app:", erro);
+        res.status(500).json({ erro: "Erro interno no servidor" });
+    }
+});
+
+// ==========================================
+// 👥 BUSCAR EQUIPE DE VENDEDORAS (CRM DO APP)
+// ==========================================
+app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
+    const { sacoleiroId } = req.params;
+    try {
+        const vendedoras = await prisma.vendedoraFinal.findMany({
+            where: { sacoleiraId: parseInt(sacoleiroId) },
+            orderBy: { nome: 'asc' } // Traz em ordem alfabética
+        });
+        res.json(vendedoras);
+    } catch (erro) {
+        console.error("Erro ao buscar equipe:", erro);
+        res.status(500).json({ erro: "Erro ao buscar vendedoras" });
+    }
+});
+
+// ==========================================
 // 🚀 LIGANDO O MOTOR
 // ==========================================
 app.listen(3000, () => {
