@@ -212,22 +212,22 @@ app.put('/cobranca/:id/quitar', verificarCracha, async (req, res) => {
 app.post('/login-app', async (req, res) => {
     const { usuario, senha } = req.body;
     try {
-        // Busca no banco um Sacoleiro que tenha esse nome e essa senha exata
-        // ATENÇÃO: Se a sua tabela se chamar "sacoleira" em vez de "cliente", troque ali embaixo!
+        // Buscando com os nomes exatos que você confirmou
         const sacoleiro = await prisma.cliente.findFirst({
             where: {
-                nome: usuario,
-                senha: senha
+                usuarioApp: usuario, 
+                senhaApp:   senha    
             }
         });
 
         if (sacoleiro) {
-            res.json({ sacoleira: sacoleiro }); // Sucesso! Devolve os dados dele para o celular
+            // Retorna os dados para o celular salvar no localStorage
+            res.json({ sacoleira: sacoleiro });
         } else {
-            res.status(401).json({ erro: "Usuário ou senha incorretos" });
+            res.status(401).json({ erro: "Usuário ou senha incorretos!" });
         }
     } catch (erro) {
-        console.error("Erro no login do app:", erro);
+        console.error("Erro no login:", erro);
         res.status(500).json({ erro: "Erro interno no servidor" });
     }
 });
