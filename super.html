@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Admin - Hiago</title>
+    <style>
+        /* Dark Mode Profissional para o Super Admin */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 30px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
+        
+        .painel { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 30px; border: 1px solid #334155; }
+        .painel h2 { margin-top: 0; color: #e2e8f0; font-size: 18px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; color: white; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.2s; }
+        input:focus { border-color: #38bdf8; }
+        
+        button { background: #0284c7; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+        
+        .btn-bloquear { background: #dc2626; padding: 8px 15px; font-size: 12px; }
+        .btn-bloquear:hover { background: #b91c1c; }
+        .btn-renovar { background: #10b981; padding: 8px 15px; font-size: 12px; }
+        .btn-renovar:hover { background: #059669; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #94a3b8; text-transform: uppercase; font-size: 12px; }
+        
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .st-teste { background: #fef08a; color: #854d0e; }
+        .st-ativo { background: #bbf7d0; color: #166534; }
+        .st-bloqueado { background: #fecaca; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <script>
+    // 🔒 O CADEADO DO CEO
+    const senhaMestra = prompt("🛑 ÁREA RESTRITA DO SISTEMA!\nDigite a Senha do Arquiteto para acessar:");
+    
+    // Troque 'Hiago2026' pela senha secreta que você quiser!
+    if (senhaMestra !== "5894350*11011910") {
+        alert("❌ Senha Incorreta. Acesso Negado.");
+        window.location.href = "/"; // Expulsa o invasor para a tela inicial
+    }
+</script>
+
+    <div class="container">
+        <h1>👑 Central de Comando SaaS</h1>
+
+        <div class="painel">
+            <h2>➕ Cadastrar Nova Empresa (Cliente)</h2>
+            <div class="form-grid">
+                <input type="text" id="nomeFantasia" placeholder="Nome Fantasia (Ex: Confecções do Sogro)">
+                <input type="text" id="dono" placeholder="Nome do Responsável">
+                <input type="email" id="emailLogin" placeholder="Email para Login no QG">
+                <input type="text" id="senhaLogin" placeholder="Senha de Acesso Inicial">
+            </div>
+            <button onclick="cadastrarEmpresa()">🚀 Gerar Acesso (30 Dias Grátis)</button>
+        </div>
+
+        <div class="painel">
+            <h2>🏢 Empresas Ativas na Base</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empresa / Dono</th>
+                        <th>Login (Email)</th>
+                        <th>Status</th>
+                        <th>Expira em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-empresas">
+                    <tr><td colspan="6" style="text-align:center; color:#64748b;">Carregando clientes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function carregarEmpresas() {
+            const resposta = await fetch('/super/empresas');
+            const empresas = await resposta.json();
+            const tbody = document.getElementById('tabela-empresas');
+            tbody.innerHTML = '';
+
+            empresas.forEach(emp => {
+                let badgeClass = 'st-teste';
+                if (emp.status === 'ATIVO') badgeClass = 'st-ativo';
+                if (emp.status === 'BLOQUEADO') badgeClass = 'st-bloqueado';
+
+                const dataExp = new Date(emp.dataExpiracao).toLocaleDateString('pt-BR');
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="color:#64748b;">#${emp.id}</td>
+                        <td><strong>${emp.nomeFantasia}</strong><br><span style="font-size:12px; color:#94a3b8;">👤 ${emp.dono}</span></td>
+                        <td>${emp.emailLogin}</td>
+                        <td><span class="status-badge ${badgeClass}">${emp.status}</span></td>
+                        <td>${dataExp}</td>
+                        <td>
+                            <button class="btn-renovar" onclick="mudarStatus(${emp.id}, 'RENOVAR_30')">💵 Pagou (+30 Dias)</button>
+                            <button class="btn-bloquear" onclick="mudarStatus(${emp.id}, 'BLOQUEAR')">🛑 Cortar Acesso</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function cadastrarEmpresa() {
+            const nomeFantasia = document.getElementById('nomeFantasia').value;
+            const dono = document.getElementById('dono').value;
+            const emailLogin = document.getElementById('emailLogin').value;
+            const senhaLogin = document.getElementById('senhaLogin').value;
+
+            if (!nomeFantasia || !dono || !emailLogin || !senhaLogin) return alert("Preencha todos os campos!");
+
+            const resposta = await fetch('/super/empresas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nomeFantasia, dono, emailLogin, senhaLogin })
+            });
+
+            if (resposta.ok) {
+                alert("✅ Empresa cadastrada e pronta para faturar!");
+                document.getElementById('nomeFantasia').value = ''; document.getElementById('dono').value = ''; 
+                document.getElementById('emailLogin').value = ''; document.getElementById('senhaLogin').value = '';
+                carregarEmpresas();
+            } else {
+                alert("❌ Erro ao cadastrar. O e-mail já existe?");
+            }
+        }
+
+        async function mudarStatus(id, acao) {
+            if(confirm(`Tem certeza que deseja ${acao === 'BLOQUEAR' ? 'CORTAR O ACESSO' : 'RENOVAR 30 DIAS'} desta empresa?`)) {
+                await fetch(`/super/empresas/${id}/acao`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ acao })
+                });
+                carregarEmpresas();
+            }
+        }
+
+        carregarEmpresas();
+    </script>
+</body>
+</html>
