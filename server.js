@@ -219,6 +219,7 @@ app.post('/login-app', async (req, res) => {
                 senhaApp:   senha    
             }
         });
+        console.log("Resultado da busca:", sacoleiro);
 
         if (sacoleiro) {
             // Retorna os dados para o celular salvar no localStorage
