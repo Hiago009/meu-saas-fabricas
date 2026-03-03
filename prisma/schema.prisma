@@ -59,6 +59,8 @@ model Sacoleiro {
   
   malas        Mala[]
   vendas       VendaSacoleiro[]
+  vendedoras VendedoraFinal[]
+
 }
 
 model Mala {
@@ -89,4 +91,17 @@ model VendaSacoleiro {
   assinatura     String?
   status         String   @default("PENDENTE")
   criadoEm       DateTime @default(now())
+}
+
+model VendedoraFinal {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  telefone    String   // Para o botão do WhatsApp
+  endereco    String   // Para o botão do Maps
+  diaCobranca Int?     // Dia combinado para receber
+  
+  sacoleiraId Int
+  sacoleira   Cliente  @relation(fields: [sacoleiraId], references: [id]) // (Troque Cliente pelo nome exato da sua tabela de sacoleiros)
+
+  criadoEm    DateTime @default(now())
 }
