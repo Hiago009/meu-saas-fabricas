@@ -252,6 +252,7 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
 // ==========================================
 // 🚀 LIGANDO O MOTOR
 // ==========================================
-app.listen(3000, () => {
-  console.log('Servidor V8 Rodando (Modo SaaS Blindado) na porta 3000!');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
