@@ -212,7 +212,6 @@ app.put('/cobranca/:id/quitar', verificarCracha, async (req, res) => {
 app.post('/login-app', async (req, res) => {
     const { usuario, senha } = req.body;
     try {
-        // Buscando com os nomes exatos que você confirmou
         const sacoleiro = await prisma.sacoleiro.findFirst({
             where: {
                 usuarioApp: usuario, 
@@ -222,7 +221,6 @@ app.post('/login-app', async (req, res) => {
         console.log("Resultado da busca:", sacoleiro);
 
         if (sacoleiro) {
-            // Retorna os dados para o celular salvar no localStorage
             res.json({ sacoleira: sacoleiro });
         } else {
             res.status(401).json({ erro: "Usuário ou senha incorretos!" });
@@ -241,7 +239,7 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
     try {
         const vendedoras = await prisma.vendedoraFinal.findMany({
             where: { sacoleiraId: parseInt(sacoleiroId) },
-            orderBy: { nome: 'asc' } // Traz em ordem alfabética
+            orderBy: { nome: 'asc' } 
         });
         res.json(vendedoras);
     } catch (erro) {
@@ -254,9 +252,8 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
 // 👩‍💼 ROTAS DAS VENDEDORAS (Isoladas por Sacoleiro)
 // ==========================================
 
-// 1. ROTA PARA CADASTRAR UMA NOVA VENDEDORA
 app.post('/api/vendedoras', async (req, res) => {
-  const { nome, telefone, endereco, diaCobranca, sacoleiraId } = req.body;
+  const { nome, telefone, endereco, praca, diaCobranca, sacoleiraId } = req.body; // <-- Variável praca adicionada aqui!
   
   try {
     const novaVendedora = await prisma.vendedoraFinal.create({
@@ -264,8 +261,9 @@ app.post('/api/vendedoras', async (req, res) => {
         nome: nome,
         telefone: telefone,
         endereco: endereco,
+        praca: praca || "Geral", 
         diaCobranca: parseInt(diaCobranca),
-        sacoleiraId: parseInt(sacoleiraId) // <-- É isso que amarra a vendedora ao sacoleiro certo!
+        sacoleiraId: parseInt(sacoleiraId) 
       }
     });
     
@@ -276,16 +274,15 @@ app.post('/api/vendedoras', async (req, res) => {
   }
 });
 
-// 2. ROTA PARA LISTAR AS VENDEDORAS DE UM SACOLEIRO ESPECÍFICO
 app.get('/api/vendedoras/sacoleiro/:id', async (req, res) => {
   const sacoleiroId = req.params.id;
   
   try {
-    // O Prisma vai no banco e traz APENAS as vendedoras que têm esse sacoleiraId
     const vendedoras = await prisma.vendedoraFinal.findMany({
       where: {
         sacoleiraId: parseInt(sacoleiroId)
-      }
+      }, // <-- Vírgula vital adicionada aqui!
+      orderBy: { praca: 'asc' } 
     });
     
     res.json(vendedoras);
@@ -293,6 +290,44 @@ app.get('/api/vendedoras/sacoleiro/:id', async (req, res) => {
     console.error("Erro ao buscar vendedoras:", erro);
     res.status(500).json({ erro: "Erro ao buscar a lista de vendedoras." });
   }
+});
+
+// ==========================================
+// 🎒 REPASSE: SACOLEIRO -> VENDEDORA
+// ==========================================
+app.post('/api/repasse', async (req, res) => {
+    const { sacoleiroId, vendedoraId, descricaoKits, valorTotal } = req.body;
+    
+    try {
+        const repasse = await prisma.repasseVendedora.create({
+            data: {
+                sacoleiroId: parseInt(sacoleiroId),
+                vendedoraId: parseInt(vendedoraId),
+                descricaoKits: descricaoKits,
+                valorTotal: parseFloat(valorTotal)
+            }
+        });
+        res.json({ mensagem: "Kits repassados para a vendedora com sucesso!", repasse });
+    } catch (erro) {
+        console.error("Erro no repasse:", erro);
+        res.status(500).json({ erro: "Erro ao registrar repasse." });
+    }
+});
+
+app.get('/api/repasse/sacoleiro/:id', async (req, res) => {
+    try {
+        const mercadoriaNaRua = await prisma.repasseVendedora.findMany({
+            where: { 
+                sacoleiroId: parseInt(req.params.id),
+                status: "NA_RUA"
+            },
+            include: { vendedora: true }, 
+            orderBy: { criadoEm: 'desc' }
+        });
+        res.json(mercadoriaNaRua);
+    } catch (erro) {
+        res.status(500).json({ erro: "Erro ao buscar mercadorias na rua." });
+    }
 });
 
 // ==========================================

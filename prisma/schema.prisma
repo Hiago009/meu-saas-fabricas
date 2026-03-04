@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Mantemos SQLite para desenvolvimento local
+  provider = "postgresql" // Banco de dados de produção do Render
   url      = env("DATABASE_URL")
 }
 
@@ -59,8 +59,8 @@ model Sacoleiro {
   
   malas        Mala[]
   vendas       VendaSacoleiro[]
-  vendedoras VendedoraFinal[]
-
+  vendedoras   VendedoraFinal[] 
+  repasses     RepasseVendedora[] // <-- Ligação nova adicionada aqui
 }
 
 model Mala {
@@ -98,10 +98,31 @@ model VendedoraFinal {
   nome        String
   telefone    String   // Para o botão do WhatsApp
   endereco    String   // Para o botão do Maps
+  praca       String?  @default("Geral")
   diaCobranca Int?     // Dia combinado para receber
   
   sacoleiraId Int
-  sacoleira   Cliente  @relation(fields: [sacoleiraId], references: [id]) // (Troque Cliente pelo nome exato da sua tabela de sacoleiros)
+  sacoleira   Sacoleiro  @relation(fields: [sacoleiraId], references: [id]) 
+
+  kitsPegos   RepasseVendedora[] // <-- Ligação nova adicionada aqui
 
   criadoEm    DateTime @default(now())
+}
+
+// ==========================================
+// 🎒 NOVA TABELA: REPASSE (Controle de Kits na Rua)
+// ==========================================
+model RepasseVendedora {
+  id              Int      @id @default(autoincrement())
+  descricaoKits   String   // Ex: "3x Blusa M, 2x Calça Jeans"
+  valorTotal      Float    // Quanto a vendedora deve ao sacoleiro
+  status          String   @default("NA_RUA") // Pode ser "NA_RUA" ou "ACERTADO"
+  
+  sacoleiroId     Int
+  sacoleiro       Sacoleiro @relation(fields: [sacoleiroId], references: [id])
+  
+  vendedoraId     Int
+  vendedora       VendedoraFinal @relation(fields: [vendedoraId], references: [id])
+
+  criadoEm        DateTime @default(now())
 }
