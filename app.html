@@ -129,7 +129,7 @@
                 <input type="text" id="cad-endereco" class="input-app" placeholder="Endereço Completo">
                 <div style="display: flex; gap: 10px;">
                     <input type="text" id="cad-praca" class="input-app" style="flex: 2;" placeholder="Praça / Bairro">
-                    <input type="text" id="cad-dia" class="input-app" style="flex: 1;" placeholder="Pgto (Ex:15/04)">
+                    <input type="text" id="cad-dia" class="input-app" style="flex: 1;" placeholder="Pgto (Ex: 19/10)">
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-entrar" style="background: #9ca3af;" onclick="fecharDiv('form-nova-vendedora')">Cancelar</button>
@@ -137,18 +137,30 @@
                 </div>
             </div>
 
+            <div id="form-editar-vendedora" style="display: none; background: #fdfdea; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ca8a04;">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #854d0e;">✏️ Editar Vendedora</h3>
+                <input type="hidden" id="edit-id">
+                <input type="text" id="edit-nome" class="input-app" placeholder="Nome Completo">
+                <input type="tel" id="edit-telefone" class="input-app" placeholder="Telefone / WhatsApp">
+                <input type="text" id="edit-endereco" class="input-app" placeholder="Endereço Completo">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="edit-praca" class="input-app" style="flex: 2;" placeholder="Praça / Bairro">
+                    <input type="text" id="edit-dia" class="input-app" style="flex: 1;" placeholder="Pgto (Ex: 19/10)">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-entrar" style="background: #9ca3af;" onclick="fecharDiv('form-editar-vendedora')">Cancelar</button>
+                    <button class="btn-entrar" style="background: #ca8a04;" onclick="salvarEdicaoVendedora()">Atualizar</button>
+                </div>
+            </div>
+
             <div id="form-novo-repasse" style="display: none; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--alerta);">
                 <h3 style="margin: 0 0 10px 0; font-size: 14px;">Entregar Peças na Rua</h3>
-                
                 <label class="label-legal" style="margin-top:0;">Selecione a Vendedora:</label>
                 <select id="rep-vendedora" class="input-app" style="background: white;"></select>
-
                 <label class="label-legal">Descrição do Kit (O que ela pegou?):</label>
-                <textarea id="rep-descricao" class="input-app" rows="3" placeholder="Ex: 3x Blusas M, 2x Calças Jeans, 1x Saia..." style="resize: none;"></textarea>
-                
+                <textarea id="rep-descricao" class="input-app" rows="3" placeholder="Ex: 3x Blusas M, 2x Calças Jeans..." style="resize: none;"></textarea>
                 <label class="label-legal">Valor Total que ela deve (R$):</label>
                 <input type="number" id="rep-valor" class="input-app" placeholder="Ex: 250.00" step="0.01">
-
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-entrar" style="background: #9ca3af;" onclick="fecharDiv('form-novo-repasse')">Cancelar</button>
                     <button class="btn-entrar" style="background: var(--alerta);" onclick="salvarRepasseKits()">Confirmar Entrega</button>
@@ -169,6 +181,7 @@
                 <div id="lista-kits-rua"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Buscando kits na rua...</p></div>
             </div>
         </div>
+
         <div id="aba-vender" class="aba-conteudo">
             <h2 style="font-size: 18px; margin-top: 0;">🛒 Gerar Promissória Digital</h2>
             
@@ -258,14 +271,14 @@
             if (sacoleiro) {
                 if (abaDestino === 'inicio') carregarDashboardFinanceiro(sacoleiro.id);
                 if (abaDestino === 'mala') carregarMinhaMala(); 
-                if (abaDestino === 'clientes') { carregarAgendaCRM(); carregarRepassesRua(); } // Atualizado!
+                if (abaDestino === 'clientes') { carregarAgendaCRM(); carregarRepassesRua(); } 
                 if (abaDestino === 'vender') setTimeout(redimensionarCanvas, 200);
                 if (abaDestino === 'receber') carregarRecebimentos(sacoleiro.id); 
             }
         }
 
         // ==========================================
-        // DASHBOARD & MALA DE ESTOQUE
+        // DASHBOARD E MALA
         // ==========================================
         async function carregarDashboardFinanceiro(sacoleiroId) {
             try {
@@ -315,7 +328,7 @@
         }
 
         // ==========================================
-        // NOVO CRM: CADASTRO E REPASSE
+        // CRM: CADASTRO, EDIÇÃO E REPASSE
         // ==========================================
         function abrirDiv(id) { document.getElementById(id).style.display = 'block'; }
         function fecharDiv(id) { document.getElementById(id).style.display = 'none'; }
@@ -330,7 +343,6 @@
         async function carregarAgendaCRM() {
             const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
             if (!sacoleiro) return;
-            // ATUALIZADO PARA A NOVA ROTA
             const resposta = await fetch(`/api/vendedoras/sacoleiro/${sacoleiro.id}`);
             agendaGlobal = await resposta.json();
             
@@ -343,8 +355,9 @@
             if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma vendedora cadastrada.</p>`;
             
             agendaGlobal.forEach(c => {
-                // Alimenta a lista de contatos
+                // 👇 LINK DO MAPA CORRIGIDO AQUI!
                 const enderecoBusca = encodeURIComponent(c.endereco + ", " + (c.praca || "") + ", Juiz de Fora, MG");
+                
                 divLista.innerHTML += `
                     <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
@@ -353,16 +366,16 @@
                                 <p style="margin: 0; font-size: 11px; color: var(--texto-claro);">📍 ${c.praca ? c.praca + ' - ' : ''}${c.endereco}</p>
                             </div>
                             <span style="background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">
-                                🗓️ ${c.diaCobranca ? 'Acerto: ' + c.diaCobranca : 'Acerto a combinar'}
+                                🗓️ ${c.diaCobranca ? c.diaCobranca : '--'}
                             </span>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 Zap</button>
-                            <button onclick="window.open('http://googleusercontent.com/maps.google.com/?q=${enderecoBusca}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">📍 Rota</button>
+                            <button onclick="window.open('https://maps.google.com/?q=${enderecoBusca}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">📍 Rota</button>
+                            <button onclick="abrirEdicao(${c.id})" style="background: #e5e7eb; color: #374151; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">✏️</button>
                         </div>
                     </div>`;
                 
-                // Alimenta o formulário de repasse
                 selectRepasse.innerHTML += `<option value="${c.id}">${c.nome} (${c.praca || 'Geral'})</option>`;
             });
         }
@@ -390,6 +403,39 @@
             } else { alert("❌ Erro ao cadastrar."); }
         }
 
+        // --- FUNÇÕES DE EDIÇÃO ---
+        function abrirEdicao(id) {
+            const vendedora = agendaGlobal.find(v => v.id === id);
+            document.getElementById('edit-id').value = vendedora.id;
+            document.getElementById('edit-nome').value = vendedora.nome;
+            document.getElementById('edit-telefone').value = vendedora.telefone;
+            document.getElementById('edit-endereco').value = vendedora.endereco;
+            document.getElementById('edit-praca').value = vendedora.praca || "";
+            document.getElementById('edit-dia').value = vendedora.diaCobranca || "";
+            abrirDiv('form-editar-vendedora');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function salvarEdicaoVendedora() {
+            const id = document.getElementById('edit-id').value;
+            const nome = document.getElementById('edit-nome').value;
+            const telefone = document.getElementById('edit-telefone').value;
+            const endereco = document.getElementById('edit-endereco').value;
+            const praca = document.getElementById('edit-praca').value;
+            const diaCobranca = document.getElementById('edit-dia').value;
+
+            const resposta = await fetch(`/api/vendedoras/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, telefone, endereco, praca, diaCobranca })
+            });
+
+            if(resposta.ok) {
+                alert("✅ Dados atualizados!");
+                fecharDiv('form-editar-vendedora');
+                carregarAgendaCRM();
+            } else { alert("❌ Erro ao atualizar."); }
+        }
+
         async function salvarRepasseKits() {
             const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
             const vendedoraId = document.getElementById('rep-vendedora').value;
@@ -407,7 +453,7 @@
                 alert("📦 Kits repassados com sucesso!");
                 document.getElementById('rep-vendedora').value = ''; document.getElementById('rep-descricao').value = ''; document.getElementById('rep-valor').value = '';
                 fecharDiv('form-novo-repasse');
-                trocarSubAba('rua'); // Leva ele direto pra aba de rua pra ver
+                trocarSubAba('rua'); 
                 carregarRepassesRua();
             } else { alert("❌ Erro ao repassar."); }
         }
@@ -438,7 +484,7 @@
         }
 
         // ==========================================
-        // ASSINATURA DA PROMISSÓRIA (MANTEVE INTACTO)
+        // ASSINATURA DA PROMISSÓRIA
         // ==========================================
         const canvas = document.getElementById('canvas-assinatura');
         const ctx = canvas.getContext('2d');

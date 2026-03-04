@@ -252,8 +252,9 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
 // 👩‍💼 ROTAS DAS VENDEDORAS (Isoladas por Sacoleiro)
 // ==========================================
 
+// 1. ROTA PARA CADASTRAR UMA NOVA VENDEDORA
 app.post('/api/vendedoras', async (req, res) => {
-  const { nome, telefone, endereco, praca, diaCobranca, sacoleiraId } = req.body; // <-- Variável praca adicionada aqui!
+  const { nome, telefone, endereco, praca, diaCobranca, sacoleiraId } = req.body;
   
   try {
     const novaVendedora = await prisma.vendedoraFinal.create({
@@ -262,11 +263,10 @@ app.post('/api/vendedoras', async (req, res) => {
         telefone: telefone,
         endereco: endereco,
         praca: praca || "Geral", 
-        diaCobranca: diaCobranca,
+        diaCobranca: diaCobranca, // <-- A trava de números foi removida daqui!
         sacoleiraId: parseInt(sacoleiraId) 
       }
     });
-    
     res.status(201).json({ mensagem: "Vendedora cadastrada com sucesso!", vendedora: novaVendedora });
   } catch (erro) {
     console.error("Erro ao cadastrar vendedora:", erro);
@@ -274,20 +274,33 @@ app.post('/api/vendedoras', async (req, res) => {
   }
 });
 
+// 2. NOVA ROTA: EDITAR DADOS DA VENDEDORA
+app.put('/api/vendedoras/:id', async (req, res) => {
+    const vendedoraId = parseInt(req.params.id);
+    const { nome, telefone, endereco, praca, diaCobranca } = req.body;
+    
+    try {
+        const atualizada = await prisma.vendedoraFinal.update({
+            where: { id: vendedoraId },
+            data: { nome, telefone, endereco, praca: praca || "Geral", diaCobranca }
+        });
+        res.json({ mensagem: "Dados atualizados com sucesso!", vendedora: atualizada });
+    } catch (erro) {
+        console.error("Erro ao editar vendedora:", erro);
+        res.status(500).json({ erro: "Erro ao editar os dados." });
+    }
+});
+
+// 3. ROTA PARA LISTAR AS VENDEDORAS
 app.get('/api/vendedoras/sacoleiro/:id', async (req, res) => {
   const sacoleiroId = req.params.id;
-  
   try {
     const vendedoras = await prisma.vendedoraFinal.findMany({
-      where: {
-        sacoleiraId: parseInt(sacoleiroId)
-      }, // <-- Vírgula vital adicionada aqui!
+      where: { sacoleiraId: parseInt(sacoleiroId) },
       orderBy: { praca: 'asc' } 
     });
-    
     res.json(vendedoras);
   } catch (erro) {
-    console.error("Erro ao buscar vendedoras:", erro);
     res.status(500).json({ erro: "Erro ao buscar a lista de vendedoras." });
   }
 });
