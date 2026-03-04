@@ -251,6 +251,51 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
 });
 
 // ==========================================
+// 👩‍💼 ROTAS DAS VENDEDORAS (Isoladas por Sacoleiro)
+// ==========================================
+
+// 1. ROTA PARA CADASTRAR UMA NOVA VENDEDORA
+app.post('/api/vendedoras', async (req, res) => {
+  const { nome, telefone, endereco, diaCobranca, sacoleiraId } = req.body;
+  
+  try {
+    const novaVendedora = await prisma.vendedoraFinal.create({
+      data: {
+        nome: nome,
+        telefone: telefone,
+        endereco: endereco,
+        diaCobranca: parseInt(diaCobranca),
+        sacoleiraId: parseInt(sacoleiraId) // <-- É isso que amarra a vendedora ao sacoleiro certo!
+      }
+    });
+    
+    res.status(201).json({ mensagem: "Vendedora cadastrada com sucesso!", vendedora: novaVendedora });
+  } catch (erro) {
+    console.error("Erro ao cadastrar vendedora:", erro);
+    res.status(500).json({ erro: "Erro interno ao cadastrar vendedora." });
+  }
+});
+
+// 2. ROTA PARA LISTAR AS VENDEDORAS DE UM SACOLEIRO ESPECÍFICO
+app.get('/api/vendedoras/sacoleiro/:id', async (req, res) => {
+  const sacoleiroId = req.params.id;
+  
+  try {
+    // O Prisma vai no banco e traz APENAS as vendedoras que têm esse sacoleiraId
+    const vendedoras = await prisma.vendedoraFinal.findMany({
+      where: {
+        sacoleiraId: parseInt(sacoleiroId)
+      }
+    });
+    
+    res.json(vendedoras);
+  } catch (erro) {
+    console.error("Erro ao buscar vendedoras:", erro);
+    res.status(500).json({ erro: "Erro ao buscar a lista de vendedoras." });
+  }
+});
+
+// ==========================================
 // 🚀 LIGANDO O MOTOR
 // ==========================================
 const PORT = process.env.PORT || 3000;

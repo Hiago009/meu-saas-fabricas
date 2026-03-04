@@ -239,7 +239,10 @@
             const divLista = document.getElementById('lista-agenda-crm');
             divLista.innerHTML = '';
             if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma cliente encontrada.</p>`;
-agendaGlobal.forEach(c => {
+            
+            agendaGlobal.forEach(c => {
+                const enderecoBusca = encodeURIComponent(c.endereco + ", Juiz de Fora, MG");
+                
                 divLista.innerHTML += `
                     <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
@@ -253,7 +256,7 @@ agendaGlobal.forEach(c => {
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">💬 Zap</button>
-                            <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco + ", Juiz de Fora, MG")}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">📍 Rota</button>
+                            <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${enderecoBusca}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">📍 Rota</button>
                         </div>
                     </div>
                 `;
