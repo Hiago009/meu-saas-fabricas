@@ -262,7 +262,7 @@ app.post('/api/vendedoras', async (req, res) => {
         telefone: telefone,
         endereco: endereco,
         praca: praca || "Geral", 
-        diaCobranca: parseInt(diaCobranca),
+        diaCobranca: diaCobranca,
         sacoleiraId: parseInt(sacoleiraId) 
       }
     });
