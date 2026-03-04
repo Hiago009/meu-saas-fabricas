@@ -39,7 +39,6 @@
         .aviso-rotacao { background: #fff8f1; border: 1px solid #fed7aa; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 11px; color: #c2410c; text-align: center; }
         .btn-salvar-venda { background: var(--sucesso); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-top: 15px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); }
 
-        /* LISTA DE RECEBIMENTOS E MALA */
         .card-recebimento { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid var(--alerta); }
         .card-mala { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid var(--primaria); }
         .item-peca { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
@@ -58,6 +57,11 @@
         .menu-item.btn-vender { position: relative; top: -15px; background: var(--primaria); color: white; width: 55px; height: 55px; flex: none; border-radius: 50%; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4); justify-content: center; }
         .menu-item.btn-vender .icone { font-size: 24px; }
         .menu-item.btn-vender .texto { display: none; }
+
+        /* NOVAS CLASSES PARA O CRM */
+        .btn-outline { background: transparent; border: 2px solid var(--primaria); color: var(--primaria); padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; flex: 1; cursor: pointer; }
+        .sub-aba-btn { flex: 1; padding: 10px; text-align: center; border-bottom: 3px solid transparent; font-weight: bold; color: var(--texto-claro); cursor: pointer; }
+        .sub-aba-btn.ativa { border-bottom: 3px solid var(--primaria); color: var(--primaria); }
     </style>
 </head>
 <body>
@@ -105,18 +109,66 @@
             <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
                 <p style="margin: 0; font-size: 13px; color: var(--texto-claro);">Aqui estão as peças que estão atualmente consigo (da última mala pendente com a fábrica).</p>
             </div>
-            
             <div id="lista-estoque-mala">
                 <p style="text-align: center; color: var(--texto-claro); font-size: 14px;">A carregar a sua mala...</p>
             </div>
         </div>
 
         <div id="aba-clientes" class="aba-conteudo">
-            <h2 style="font-size: 18px; margin-top: 0;">👥 Minhas Vendedoras</h2>
-            <input type="text" id="busca-cliente-rua" placeholder="🔍 Procurar vendedora..." style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; outline: none;" oninput="filtrarAgenda()">
-            <div id="lista-agenda-crm"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Carregando...</p></div>
-        </div>
+            <h2 style="font-size: 18px; margin-top: 0;">👥 Equipe & Logística</h2>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-outline" onclick="abrirDiv('form-nova-vendedora')">➕ Nova Vendedora</button>
+                <button class="btn-outline" style="border-color: var(--alerta); color: var(--alerta);" onclick="abrirDiv('form-novo-repasse')">📦 Repassar Kits</button>
+            </div>
 
+            <div id="form-nova-vendedora" style="display: none; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--primaria);">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Cadastrar Vendedora</h3>
+                <input type="text" id="cad-nome" class="input-app" placeholder="Nome Completo">
+                <input type="tel" id="cad-telefone" class="input-app" placeholder="Telefone / WhatsApp">
+                <input type="text" id="cad-endereco" class="input-app" placeholder="Endereço Completo">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="cad-praca" class="input-app" style="flex: 2;" placeholder="Praça / Bairro">
+                    <input type="number" id="cad-dia" class="input-app" style="flex: 1;" placeholder="Dia Pgto">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-entrar" style="background: #9ca3af;" onclick="fecharDiv('form-nova-vendedora')">Cancelar</button>
+                    <button class="btn-entrar" onclick="salvarNovaVendedora()">Salvar</button>
+                </div>
+            </div>
+
+            <div id="form-novo-repasse" style="display: none; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--alerta);">
+                <h3 style="margin: 0 0 10px 0; font-size: 14px;">Entregar Peças na Rua</h3>
+                
+                <label class="label-legal" style="margin-top:0;">Selecione a Vendedora:</label>
+                <select id="rep-vendedora" class="input-app" style="background: white;"></select>
+
+                <label class="label-legal">Descrição do Kit (O que ela pegou?):</label>
+                <textarea id="rep-descricao" class="input-app" rows="3" placeholder="Ex: 3x Blusas M, 2x Calças Jeans, 1x Saia..." style="resize: none;"></textarea>
+                
+                <label class="label-legal">Valor Total que ela deve (R$):</label>
+                <input type="number" id="rep-valor" class="input-app" placeholder="Ex: 250.00" step="0.01">
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-entrar" style="background: #9ca3af;" onclick="fecharDiv('form-novo-repasse')">Cancelar</button>
+                    <button class="btn-entrar" style="background: var(--alerta);" onclick="salvarRepasseKits()">Confirmar Entrega</button>
+                </div>
+            </div>
+
+            <div style="display: flex; margin-bottom: 15px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="sub-aba-btn ativa" id="tab-lista-equipe" onclick="trocarSubAba('equipe')">👥 Minha Equipe</div>
+                <div class="sub-aba-btn" id="tab-lista-rua" onclick="trocarSubAba('rua')">📦 Mercadoria na Rua</div>
+            </div>
+
+            <div id="view-equipe">
+                <input type="text" id="busca-cliente-rua" placeholder="🔍 Procurar vendedora..." style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; outline: none;">
+                <div id="lista-agenda-crm"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Carregando equipe...</p></div>
+            </div>
+
+            <div id="view-rua" style="display: none;">
+                <div id="lista-kits-rua"><p style="text-align: center; color: var(--texto-claro); font-size: 14px;">Buscando kits na rua...</p></div>
+            </div>
+        </div>
         <div id="aba-vender" class="aba-conteudo">
             <h2 style="font-size: 18px; margin-top: 0;">🛒 Gerar Promissória Digital</h2>
             
@@ -133,7 +185,6 @@
                 <div class="caixa-texto-legal" id="texto-promissoria">Preencha os dados acima para gerar o termo.</div>
 
                 <label class="label-legal">✍️ Assinatura Eletrónica no Ecrã:</label>
-                
                 <div class="aviso-rotacao">💡 <b>Dica:</b> Se a cliente preferir, deite o telemóvel <b>ANTES</b> de começar a assinar para ter um quadro mais largo!</div>
 
                 <canvas id="canvas-assinatura"></canvas>
@@ -177,15 +228,20 @@
         }
 
         async function fazerLogin() {
-            const usuario = document.getElementById('usuarioApp').value;
-            const senha = document.getElementById('senhaApp').value;
+            const usuario = document.getElementById('usuarioApp').value.trim().toLowerCase();
+            const senha = document.getElementById('senhaApp').value.trim();
             if (!usuario || !senha) return alert("⚠️ Preencha os dados!");
-            const resposta = await fetch('/login-app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, senha }) });
-            if (resposta.ok) {
-                const dados = await resposta.json();
-                localStorage.setItem('sacoleiroLogado', JSON.stringify(dados.sacoleira));
-                checarSessao();
-            } else { alert("❌ Utilizador ou palavra-passe incorretos!"); }
+            try {
+                const resposta = await fetch('/login-app', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, senha }) });
+                if (resposta.ok) {
+                    const dados = await resposta.json();
+                    localStorage.setItem('sacoleiroLogado', JSON.stringify(dados.sacoleira));
+                    checarSessao();
+                } else { 
+                    const erroJson = await resposta.json();
+                    alert("❌ " + (erroJson.erro || "Dados incorretos!")); 
+                }
+            } catch(e) { alert("🌐 Erro de conexão"); }
         }
 
         function sairApp() { localStorage.removeItem('sacoleiroLogado'); checarSessao(); }
@@ -201,15 +257,15 @@
             const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
             if (sacoleiro) {
                 if (abaDestino === 'inicio') carregarDashboardFinanceiro(sacoleiro.id);
-                if (abaDestino === 'mala') carregarMinhaMala(); // NOVA FUNÇÃO AQUI!
-                if (abaDestino === 'clientes') carregarAgendaCRM();
+                if (abaDestino === 'mala') carregarMinhaMala(); 
+                if (abaDestino === 'clientes') { carregarAgendaCRM(); carregarRepassesRua(); } // Atualizado!
                 if (abaDestino === 'vender') setTimeout(redimensionarCanvas, 200);
                 if (abaDestino === 'receber') carregarRecebimentos(sacoleiro.id); 
             }
         }
 
         // ==========================================
-        // DASHBOARD & AGENDA
+        // DASHBOARD & MALA DE ESTOQUE
         // ==========================================
         async function carregarDashboardFinanceiro(sacoleiroId) {
             try {
@@ -230,123 +286,171 @@
             } catch (erro) { console.log("Erro:", erro); }
         }
 
+        async function carregarMinhaMala() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            if (!sacoleiro) return;
+            try {
+                const resposta = await fetch(`/minhas-dividas/${sacoleiro.id}`);
+                const malas = await resposta.json();
+                const divLista = document.getElementById('lista-estoque-mala');
+                divLista.innerHTML = '';
+                if (malas.length === 0) {
+                    divLista.innerHTML = `<div style="text-align:center; padding:30px 10px; background:white; border-radius:15px; border:1px dashed #d1d5db;"><span style="font-size:30px;">🎒</span><p style="color:var(--texto-claro); font-size:14px;">Mala vazia ou quitada!</p></div>`; return;
+                }
+                malas.forEach(mala => {
+                    const itens = mala.produtoNome ? mala.produtoNome.split(' + ') : [];
+                    let htmlItens = '';
+                    itens.forEach(item => {
+                        const partes = item.split('x'); const qtd = partes[0] ? partes[0].trim() : '1'; const nomePeca = partes[1] ? partes[1].trim() : item;
+                        htmlItens += `<div class="item-peca"><span class="qtd-badge">${qtd}x</span><span style="font-size: 14px; font-weight: 500;">${nomePeca}</span></div>`;
+                    });
+                    divLista.innerHTML += `
+                        <div class="card-mala">
+                            <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px;">
+                                <span style="color: var(--texto-claro);">📅 ${new Date(mala.criadoEm).toLocaleDateString('pt-BR')}</span><span style="color: var(--perigo);">R$ ${mala.total.toFixed(2)}</span>
+                            </h4>${htmlItens}
+                        </div>`;
+                });
+            } catch (erro) { console.log(erro); }
+        }
+
+        // ==========================================
+        // NOVO CRM: CADASTRO E REPASSE
+        // ==========================================
+        function abrirDiv(id) { document.getElementById(id).style.display = 'block'; }
+        function fecharDiv(id) { document.getElementById(id).style.display = 'none'; }
+        function trocarSubAba(aba) {
+            document.getElementById('view-equipe').style.display = aba === 'equipe' ? 'block' : 'none';
+            document.getElementById('view-rua').style.display = aba === 'rua' ? 'block' : 'none';
+            document.getElementById('tab-lista-equipe').className = aba === 'equipe' ? 'sub-aba-btn ativa' : 'sub-aba-btn';
+            document.getElementById('tab-lista-rua').className = aba === 'rua' ? 'sub-aba-btn ativa' : 'sub-aba-btn';
+        }
+
         let agendaGlobal = [];
         async function carregarAgendaCRM() {
             const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
             if (!sacoleiro) return;
-            const resposta = await fetch(`/minhas-clientes-crm/${sacoleiro.id}`);
+            // ATUALIZADO PARA A NOVA ROTA
+            const resposta = await fetch(`/api/vendedoras/sacoleiro/${sacoleiro.id}`);
             agendaGlobal = await resposta.json();
+            
             const divLista = document.getElementById('lista-agenda-crm');
+            const selectRepasse = document.getElementById('rep-vendedora');
+            
             divLista.innerHTML = '';
-            if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma cliente encontrada.</p>`;
-agendaGlobal.forEach(c => {
+            selectRepasse.innerHTML = '<option value="">Selecione uma vendedora...</option>';
+
+            if (agendaGlobal.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma vendedora cadastrada.</p>`;
+            
+            agendaGlobal.forEach(c => {
+                // Alimenta a lista de contatos
+                const enderecoBusca = encodeURIComponent(c.endereco + ", " + (c.praca || "") + ", Juiz de Fora, MG");
                 divLista.innerHTML += `
                     <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div>
                                 <h4 style="margin: 0 0 4px 0; color: var(--texto-escuro);">👤 ${c.nome}</h4>
-                                <p style="margin: 0; font-size: 11px; color: var(--texto-claro);">📍 ${c.endereco}</p>
+                                <p style="margin: 0; font-size: 11px; color: var(--texto-claro);">📍 ${c.praca ? c.praca + ' - ' : ''}${c.endereco}</p>
                             </div>
                             <span style="background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: bold;">
                                 🗓️ Dia ${c.diaCobranca || '--'}
                             </span>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">💬 Zap</button>
-                            <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.endereco + ", Juiz de Fora, MG")}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: center; align-items: center; gap: 5px;">📍 Rota</button>
+                            <button onclick="window.open('https://api.whatsapp.com/send?phone=55${c.telefone.replace(/\D/g,'')}', '_blank')" style="flex: 1; background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">💬 Zap</button>
+                            <button onclick="window.open('http://googleusercontent.com/maps.google.com/?q=${enderecoBusca}', '_blank')" style="flex: 1; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 13px;">📍 Rota</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
+                
+                // Alimenta o formulário de repasse
+                selectRepasse.innerHTML += `<option value="${c.id}">${c.nome} (${c.praca || 'Geral'})</option>`;
             });
         }
-        function filtrarAgenda() { 
-            // Filtragem simples
+
+        async function salvarNovaVendedora() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            const nome = document.getElementById('cad-nome').value;
+            const telefone = document.getElementById('cad-telefone').value;
+            const endereco = document.getElementById('cad-endereco').value;
+            const praca = document.getElementById('cad-praca').value;
+            const diaCobranca = document.getElementById('cad-dia').value;
+
+            if(!nome || !telefone) return alert("⚠️ Preencha pelo menos Nome e Telefone!");
+
+            const resposta = await fetch('/api/vendedoras', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, telefone, endereco, praca, diaCobranca, sacoleiraId: sacoleiro.id })
+            });
+
+            if(resposta.ok) {
+                alert("✅ Vendedora cadastrada!");
+                ['nome', 'telefone', 'endereco', 'praca', 'dia'].forEach(id => document.getElementById(`cad-${id}`).value = '');
+                fecharDiv('form-nova-vendedora');
+                carregarAgendaCRM();
+            } else { alert("❌ Erro ao cadastrar."); }
         }
 
-        // ==========================================
-        // ABA 2: O ESTOQUE DA MALA (CORTANDO O TEXTO)
-        // ==========================================
-        async function carregarMinhaMala() {
+        async function salvarRepasseKits() {
+            const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
+            const vendedoraId = document.getElementById('rep-vendedora').value;
+            const descricao = document.getElementById('rep-descricao').value;
+            const valor = document.getElementById('rep-valor').value;
+
+            if(!vendedoraId || !descricao || !valor) return alert("⚠️ Preencha todos os campos do repasse!");
+
+            const resposta = await fetch('/api/repasse', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sacoleiroId: sacoleiro.id, vendedoraId, descricaoKits: descricao, valorTotal: valor })
+            });
+
+            if(resposta.ok) {
+                alert("📦 Kits repassados com sucesso!");
+                document.getElementById('rep-vendedora').value = ''; document.getElementById('rep-descricao').value = ''; document.getElementById('rep-valor').value = '';
+                fecharDiv('form-novo-repasse');
+                trocarSubAba('rua'); // Leva ele direto pra aba de rua pra ver
+                carregarRepassesRua();
+            } else { alert("❌ Erro ao repassar."); }
+        }
+
+        async function carregarRepassesRua() {
             const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
             if (!sacoleiro) return;
+            const resposta = await fetch(`/api/repasse/sacoleiro/${sacoleiro.id}`);
+            const repasses = await resposta.json();
+            const divLista = document.getElementById('lista-kits-rua');
+            divLista.innerHTML = '';
 
-            try {
-                const resposta = await fetch(`/minhas-dividas/${sacoleiro.id}`);
-                const malas = await resposta.json();
-                const divLista = document.getElementById('lista-estoque-mala');
-                divLista.innerHTML = '';
+            if (repasses.length === 0) return divLista.innerHTML = `<p style="text-align:center;">Nenhuma mercadoria na rua.</p>`;
 
-                if (malas.length === 0) {
-                    divLista.innerHTML = `
-                        <div style="text-align: center; padding: 30px 10px; background: white; border-radius: 15px; border: 1px dashed #d1d5db;">
-                            <span style="font-size: 30px;">🎒</span>
-                            <p style="color: var(--texto-claro); font-size: 14px; margin-bottom: 0;">A sua mala está vazia ou já pagou tudo à fábrica!</p>
-                        </div>`;
-                    return;
-                }
-
-                malas.forEach(mala => {
-                    // O motor corta o texto "2x Blusa + 1x Calça" onde tem " + "
-                    const itens = mala.produtoNome ? mala.produtoNome.split(' + ') : [];
-                    let htmlItens = '';
-                    
-                    itens.forEach(item => {
-                        // Corta pelo "x" para pintar o número de cor diferente
-                        const partes = item.split('x'); 
-                        const qtd = partes[0] ? partes[0].trim() : '1';
-                        const nomePeca = partes[1] ? partes[1].trim() : item;
-
-                        htmlItens += `
-                            <div class="item-peca">
-                                <span class="qtd-badge">${qtd}x</span>
-                                <span style="font-size: 14px; color: var(--texto-escuro); font-weight: 500;">${nomePeca}</span>
-                            </div>
-                        `;
-                    });
-
-                    divLista.innerHTML += `
-                        <div class="card-mala">
-                            <h4 style="margin: 0 0 10px 0; font-size: 14px; display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 8px;">
-                                <span style="color: var(--texto-claro);">📅 ${new Date(mala.criadoEm).toLocaleDateString('pt-BR')}</span>
-                                <span style="color: var(--perigo);">R$ ${mala.total.toFixed(2)}</span>
-                            </h4>
-                            ${htmlItens}
+            repasses.forEach(r => {
+                divLista.innerHTML += `
+                    <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border-left: 5px solid var(--alerta);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 14px; color: var(--texto-escuro);">👤 ${r.vendedora.nome}</h4>
+                            <span style="font-weight: bold; color: var(--alerta);">R$ ${r.valorTotal.toFixed(2)}</span>
                         </div>
-                    `;
-                });
-
-            } catch (erro) {
-                console.log("Erro ao carregar mala:", erro);
-            }
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: var(--texto-claro); background: #f9fafb; padding: 8px; border-radius: 6px; border: 1px dashed #d1d5db;">
+                            📦 ${r.descricaoKits}
+                        </p>
+                        <p style="margin: 0; font-size: 10px; color: #9ca3af; text-align: right;">Entregue em: ${new Date(r.criadoEm).toLocaleDateString('pt-BR')}</p>
+                    </div>`;
+            });
         }
 
         // ==========================================
-        // ASSINATURA DA PROMISSÓRIA
+        // ASSINATURA DA PROMISSÓRIA (MANTEVE INTACTO)
         // ==========================================
         const canvas = document.getElementById('canvas-assinatura');
         const ctx = canvas.getContext('2d');
-        let desenhando = false;
-        let ultimaLarguraTela = window.innerWidth; 
+        let desenhando = false; let ultimaLarguraTela = window.innerWidth; 
 
         function redimensionarCanvas() {
             const containerInfo = canvas.parentElement.getBoundingClientRect();
-            canvas.width = containerInfo.width - 40; 
-            canvas.height = 250; 
+            canvas.width = containerInfo.width - 40; canvas.height = 250; 
             ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#1f2937';
         }
-
-        window.addEventListener('resize', () => { 
-            if(document.getElementById('aba-vender').style.display === 'block' && window.innerWidth !== ultimaLarguraTela) {
-                ultimaLarguraTela = window.innerWidth; redimensionarCanvas(); 
-            }
-        });
-
-        function getPosicao(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX); const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-        }
+        window.addEventListener('resize', () => { if(document.getElementById('aba-vender').style.display === 'block' && window.innerWidth !== ultimaLarguraTela) { ultimaLarguraTela = window.innerWidth; redimensionarCanvas(); }});
+        function getPosicao(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; const clientX = e.clientX || (e.touches && e.touches[0].clientX); const clientY = e.clientY || (e.touches && e.touches[0].clientY); return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY }; }
 
         canvas.addEventListener('mousedown', (e) => { desenhando = true; ctx.beginPath(); ctx.moveTo(getPosicao(e).x, getPosicao(e).y); });
         canvas.addEventListener('mousemove', (e) => { if(desenhando) { ctx.lineTo(getPosicao(e).x, getPosicao(e).y); ctx.stroke(); }});
@@ -364,15 +468,7 @@ agendaGlobal.forEach(c => {
                 const cpf = document.getElementById('cpfVenda').value || "___________";
                 const valor = document.getElementById('valorVenda').value || "0.00";
                 const data = document.getElementById('dataVenda').value;
-                document.getElementById('texto-promissoria').innerHTML = `
-                    <b>NOTA PROMISSÓRIA</b><br><br>
-                    Vencimento: <b>${data ? new Date(data + "T12:00:00Z").toLocaleDateString('pt-BR') : "___/___/_____"}</b><br>
-                    Valor: <b>R$ ${parseFloat(valor).toFixed(2)}</b><br><br>
-                    No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia especificada acima.<br><br>
-                    Emitente: <b>${nome}</b><br>CPF: <b>${cpf}</b><br>
-                    Local de Emissão: Juiz de Fora - MG<br>
-                    Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}
-                `;
+                document.getElementById('texto-promissoria').innerHTML = `<b>NOTA PROMISSÓRIA</b><br><br>Vencimento: <b>${data ? new Date(data + "T12:00:00Z").toLocaleDateString('pt-BR') : "___/___/_____"}</b><br>Valor: <b>R$ ${parseFloat(valor).toFixed(2)}</b><br><br>No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia especificada acima.<br><br>Emitente: <b>${nome}</b><br>CPF: <b>${cpf}</b><br>Local de Emissão: Juiz de Fora - MG<br>Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`;
             });
         });
 
@@ -381,108 +477,33 @@ agendaGlobal.forEach(c => {
             const nome = document.getElementById('nomeVenda').value; const cpf = document.getElementById('cpfVenda').value;
             const valor = document.getElementById('valorVenda').value; const data = document.getElementById('dataVenda').value;
             if (!nome || !valor || !data || !cpf) return alert("⚠️ Preencha Nome, CPF, Valor e Data!");
-            
             const canvasVazio = document.createElement('canvas'); canvasVazio.width = canvas.width; canvasVazio.height = canvas.height;
             let assinatura = canvas.toDataURL() !== canvasVazio.toDataURL() ? canvas.toDataURL() : null;
             if(!assinatura) return alert("⚠️ A cliente precisa assinar na tela!");
-
-            const resposta = await fetch('/vendas-vendedoras', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sacoleiroId: sacoleiro.id, nomeVendedora: `${nome} (CPF: ${cpf})`, valor, dataVencimento: data, assinatura })
-            });
-            if (resposta.ok) {
-                alert("✅ Promissória salva!");
-                document.getElementById('nomeVenda').value = ''; document.getElementById('cpfVenda').value = ''; document.getElementById('valorVenda').value = ''; document.getElementById('dataVenda').value = '';
-                limparAssinatura(); mudarAba('inicio');
-            }
+            const resposta = await fetch('/vendas-vendedoras', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sacoleiroId: sacoleiro.id, nomeVendedora: `${nome} (CPF: ${cpf})`, valor, dataVencimento: data, assinatura }) });
+            if (resposta.ok) { alert("✅ Promissória salva!"); document.getElementById('nomeVenda').value = ''; document.getElementById('cpfVenda').value = ''; document.getElementById('valorVenda').value = ''; document.getElementById('dataVenda').value = ''; limparAssinatura(); mudarAba('inicio'); }
         }
 
         // ==========================================
-        // ABA 5: RECEBIMENTOS E GERADOR DE PDF
+        // RECEBIMENTOS E PDF
         // ==========================================
         async function carregarRecebimentos(id) {
             const resposta = await fetch(`/vendas-vendedoras/${id}`);
             const promissorias = await resposta.json();
             const divLista = document.getElementById('lista-recebimentos');
             divLista.innerHTML = '';
-
             const pendentes = promissorias.filter(p => p.status === 'PENDENTE');
             if (pendentes.length === 0) return divLista.innerHTML = '<p style="text-align:center; color: var(--sucesso); font-weight: bold;">Tudo recebido! Zero calotes! 🎉</p>';
-
             pendentes.forEach(p => {
-                const assinaturaSegura = p.assinatura ? p.assinatura.replace(/'/g, "\\'") : "";
-                const nomeSeguro = p.nomeVendedora.replace(/'/g, "\\'");
-
-                divLista.innerHTML += `
-                    <div class="card-recebimento">
-                        <h4 style="margin: 0 0 5px 0;">👤 ${p.nomeVendedora}</h4>
-                        <p style="margin: 0; font-size: 12px; color: var(--texto-claro);">📅 Vencimento: <b>${new Date(p.dataVencimento).toLocaleDateString('pt-BR')}</b></p>
-                        <div style="font-size: 20px; font-weight: bold; color: var(--perigo); margin-top: 5px;">R$ ${p.valor.toFixed(2)}</div>
-                        
-                        <div class="botoes-receber">
-                            <button class="btn-acao" style="background: var(--primaria);" onclick="gerarPDFPromissoria('${nomeSeguro}', ${p.valor}, '${p.dataVencimento}', '${assinaturaSegura}', '${p.criadoEm}')">🖨️ Gerar PDF</button>
-                            <button class="btn-acao" style="background: var(--sucesso);" onclick="quitarRecebimento(${p.id})">✅ Receber (Baixa)</button>
-                        </div>
-                    </div>
-                `;
+                const assinaturaSegura = p.assinatura ? p.assinatura.replace(/'/g, "\\'") : ""; const nomeSeguro = p.nomeVendedora.replace(/'/g, "\\'");
+                divLista.innerHTML += `<div class="card-recebimento"><h4 style="margin: 0 0 5px 0;">👤 ${p.nomeVendedora}</h4><p style="margin: 0; font-size: 12px; color: var(--texto-claro);">📅 Vencimento: <b>${new Date(p.dataVencimento).toLocaleDateString('pt-BR')}</b></p><div style="font-size: 20px; font-weight: bold; color: var(--perigo); margin-top: 5px;">R$ ${p.valor.toFixed(2)}</div><div class="botoes-receber"><button class="btn-acao" style="background: var(--primaria);" onclick="gerarPDFPromissoria('${nomeSeguro}', ${p.valor}, '${p.dataVencimento}', '${assinaturaSegura}', '${p.criadoEm}')">🖨️ Gerar PDF</button><button class="btn-acao" style="background: var(--sucesso);" onclick="quitarRecebimento(${p.id})">✅ Receber (Baixa)</button></div></div>`;
             });
         }
-
-        async function quitarRecebimento(idPromissoria) {
-            if (confirm("Confirmar que a cliente pagou essa nota?")) {
-                const res = await fetch(`/vendas-vendedoras/${idPromissoria}/quitar`, { method: 'PUT' });
-                if (res.ok) {
-                    const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado'));
-                    carregarRecebimentos(sacoleiro.id);
-                }
-            }
-        }
-
+        async function quitarRecebimento(idPromissoria) { if (confirm("Confirmar que a cliente pagou essa nota?")) { const res = await fetch(`/vendas-vendedoras/${idPromissoria}/quitar`, { method: 'PUT' }); if (res.ok) { const sacoleiro = JSON.parse(localStorage.getItem('sacoleiroLogado')); carregarRecebimentos(sacoleiro.id); } } }
         function gerarPDFPromissoria(nomeComCpf, valor, dataVencimento, assinaturaBase64, dataEmissao) {
-            const dataVenc = new Date(dataVencimento).toLocaleDateString('pt-BR');
-            const dataEmis = new Date(dataEmissao).toLocaleDateString('pt-BR');
-            
+            const dataVenc = new Date(dataVencimento).toLocaleDateString('pt-BR'); const dataEmis = new Date(dataEmissao).toLocaleDateString('pt-BR');
             const janela = window.open('', '', 'width=800,height=600');
-            janela.document.write(`
-                <html>
-                <head>
-                    <title>Promissória - ${nomeComCpf}</title>
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; padding: 40px; color: #000; }
-                        .borda { border: 3px solid #000; padding: 30px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
-                        h1 { text-align: center; font-size: 24px; text-decoration: underline; margin-bottom: 30px; letter-spacing: 2px; }
-                        .info-topo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-                        .texto { font-size: 18px; line-height: 1.8; text-align: justify; margin-bottom: 40px; }
-                        .assinatura { text-align: center; margin-top: 60px; }
-                        .assinatura img { max-width: 300px; max-height: 150px; border-bottom: 1px solid #000; display: block; margin: 0 auto; }
-                        .linha-assinatura { border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 5px; }
-                        @media print { @page { margin: 0; } body { padding: 20px; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="borda">
-                        <h1>NOTA PROMISSÓRIA</h1>
-                        <div class="info-topo">
-                            <div><strong>Vencimento:</strong> ${dataVenc}</div>
-                            <div><strong>Valor:</strong> R$ ${valor.toFixed(2)}</div>
-                        </div>
-                        <div class="texto">
-                            No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia de <b>R$ ${valor.toFixed(2)}</b>.<br><br>
-                            Emitente: <b>${nomeComCpf}</b><br>
-                            Local de Emissão: Juiz de Fora - MG<br>
-                            Data de Emissão: ${dataEmis}
-                        </div>
-                        <div class="assinatura">
-                            ${assinaturaBase64 ? `<img src="${assinaturaBase64}">` : '<div class="linha-assinatura"></div>'}
-                            <div class="linha-assinatura">Assinatura do Emitente</div>
-                        </div>
-                    </div>
-                    <script>
-                        setTimeout(() => { window.print(); window.close(); }, 800);
-                    <\/script>
-                </body>
-                </html>
-            `);
+            janela.document.write(`<html><head><title>Promissória - ${nomeComCpf}</title><style>body { font-family: 'Times New Roman', Times, serif; padding: 40px; color: #000; } .borda { border: 3px solid #000; padding: 30px; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); } h1 { text-align: center; font-size: 24px; text-decoration: underline; margin-bottom: 30px; letter-spacing: 2px; } .info-topo { display: flex; justify-content: space-between; font-size: 18px; margin-bottom: 30px; border-bottom: 1px solid #ccc; padding-bottom: 10px; } .texto { font-size: 18px; line-height: 1.8; text-align: justify; margin-bottom: 40px; } .assinatura { text-align: center; margin-top: 60px; } .assinatura img { max-width: 300px; max-height: 150px; border-bottom: 1px solid #000; display: block; margin: 0 auto; } .linha-assinatura { border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 5px; } @media print { @page { margin: 0; } body { padding: 20px; } }</style></head><body><div class="borda"><h1>NOTA PROMISSÓRIA</h1><div class="info-topo"><div><strong>Vencimento:</strong> ${dataVenc}</div><div><strong>Valor:</strong> R$ ${valor.toFixed(2)}</div></div><div class="texto">No dia do vencimento acima indicado, pagarei por esta única via de NOTA PROMISSÓRIA a quantia de <b>R$ ${valor.toFixed(2)}</b>.<br><br>Emitente: <b>${nomeComCpf}</b><br>Local de Emissão: Juiz de Fora - MG<br>Data de Emissão: ${dataEmis}</div><div class="assinatura">${assinaturaBase64 ? `<img src="${assinaturaBase64}">` : '<div class="linha-assinatura"></div>'}<div class="linha-assinatura">Assinatura do Emitente</div></div></div><script>setTimeout(() => { window.print(); window.close(); }, 800);<\/script></body></html>`);
             janela.document.close();
         }
 
