@@ -4,8 +4,7 @@
   "description": "SaaS para Gestão de Fábricas e Sacoleiros",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "postinstall": "npx prisma generate && npx prisma db push"
+    "start": "npx prisma generate && npx prisma db push --accept-data-loss && node server.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
