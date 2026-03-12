@@ -2,6 +2,18 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const cors = require('cors');
+const { execSync } = require('child_process'); // 🚜 O TRATOR
+
+// ==========================================
+// 🚜 FORÇAR A ATUALIZAÇÃO DO BANCO DE DADOS
+// ==========================================
+try {
+    console.log("🚜 Passando o trator: Atualizando a planta do banco de dados...");
+    execSync('npx prisma generate && npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+    console.log("✅ Banco de dados atualizado com sucesso!");
+} catch (erro) {
+    console.error("🚨 Erro ao passar o trator no banco:", erro);
+}
 
 const app = express();
 const prisma = new PrismaClient();
