@@ -6,18 +6,21 @@
     <title>SaaS - Estoque da Fábrica</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; padding: 20px; color: #1f2937; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
         
         .painel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
         input { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; width: 100%; box-sizing: border-box; }
         input:focus { border-color: #4f46e5; }
-        button.btn-salvar { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
+        button.btn-salvar { background: #10b981; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 14px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
         th { background: #f9fafb; color: #4b5563; }
         .badge { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .preco-custo { color: #6b7280; }
+        .preco-atacado { color: #2563eb; font-weight: bold; }
+        .preco-varejo { color: #10b981; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -51,13 +54,16 @@
                 });
             }, 50);
         </script>
+
         <div class="painel">
-            <h2>➕ Nova Peça no Estoque</h2>
+            <h2 style="margin-top: 0;">➕ Nova Peça no Estoque</h2>
             <div class="grid-inputs">
                 <input type="text" id="codigo" placeholder="Cód. (Ex: BL01)">
                 <input type="text" id="produto" placeholder="Nome da Peça">
                 <input type="number" id="quantidade" placeholder="Qtd">
-                <input type="number" id="preco" step="0.01" placeholder="Preço Custo (R$)">
+                <input type="number" id="precoCusto" step="0.01" placeholder="Custo Fábrica (R$)">
+                <input type="number" id="preco" step="0.01" placeholder="Atacado/Sacoleiro (R$)">
+                <input type="number" id="precoVarejo" step="0.01" placeholder="Varejo Final (R$)">
             </div>
             <button class="btn-salvar" onclick="salvarProduto()">Guardar no Estoque</button>
         </div>
@@ -68,12 +74,23 @@
                 <input type="text" id="buscaEstoque" onkeyup="filtrarEstoque()" placeholder="🔍 Buscar por código ou nome..." style="max-width: 300px; border-radius: 20px; padding: 10px 15px; border: 1px solid #d1d5db;">
             </div>
             
-            <table>
-                <thead><tr><th>Cód</th><th>Produto</th><th>Qtd</th><th>Preço</th></tr></thead>
-                <tbody id="tabela-estoque">
-                    <tr><td colspan="4" style="text-align: center;">Carregando peças...</td></tr>
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cód</th>
+                            <th>Produto</th>
+                            <th>Qtd</th>
+                            <th>Custo (R$)</th>
+                            <th>Atacado (R$)</th>
+                            <th>Varejo (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-estoque">
+                        <tr><td colspan="6" style="text-align: center;">Carregando peças...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -99,17 +116,24 @@
                 tbody.innerHTML = '';
 
                 if(estoque.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280;">Seu estoque está vazio. Cadastre uma peça!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">Seu estoque está vazio. Cadastre uma peça!</td></tr>';
                     return;
                 }
 
                 estoque.forEach(peca => {
+                    // Proteção caso os novos preços venham nulos de cadastros antigos
+                    const custo = peca.precoCusto || 0;
+                    const atacado = peca.preco || 0;
+                    const varejo = peca.precoVarejo || 0;
+
                     tbody.innerHTML += `
                         <tr>
                             <td><span class="badge">${peca.codigo || '-'}</span></td>
                             <td><strong>${peca.produto}</strong></td>
                             <td>${peca.quantidade} un.</td>
-                            <td>R$ ${peca.preco.toFixed(2)}</td>
+                            <td class="preco-custo">${custo.toFixed(2)}</td>
+                            <td class="preco-atacado">${atacado.toFixed(2)}</td>
+                            <td class="preco-varejo">${varejo.toFixed(2)}</td>
                         </tr>
                     `;
                 });
@@ -126,22 +150,33 @@
             const codigo = document.getElementById('codigo').value;
             const produto = document.getElementById('produto').value;
             const quantidade = document.getElementById('quantidade').value;
-            const preco = document.getElementById('preco').value;
+            const precoCusto = document.getElementById('precoCusto').value;
+            const preco = document.getElementById('preco').value; // Atacado
+            const precoVarejo = document.getElementById('precoVarejo').value;
 
-            if (!produto || !quantidade || !preco) return alert("Preencha Nome, Qtd e Preço!");
+            if (!produto || !quantidade || !preco) {
+                return alert("⚠️ Preencha pelo menos Nome, Qtd e o Preço de Atacado!");
+            }
 
             const resposta = await fetch('/estoque', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'empresa-id': usuario.id },
-                body: JSON.stringify({ codigo, produto, quantidade, preco })
+                body: JSON.stringify({ 
+                    codigo, 
+                    produto, 
+                    quantidade, 
+                    precoCusto: precoCusto || 0, 
+                    preco, 
+                    precoVarejo: precoVarejo || 0 
+                })
             });
 
             if (resposta.ok) {
-                document.getElementById('codigo').value = ''; document.getElementById('produto').value = '';
-                document.getElementById('quantidade').value = ''; document.getElementById('preco').value = '';
+                // Limpa os campos após salvar
+                ['codigo', 'produto', 'quantidade', 'precoCusto', 'preco', 'precoVarejo'].forEach(id => document.getElementById(id).value = '');
                 carregarEstoque(); 
             } else {
-                alert("Erro ao salvar no banco blindado.");
+                alert("❌ Erro ao salvar no banco blindado.");
             }
         }
 
