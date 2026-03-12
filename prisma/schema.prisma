@@ -3,51 +3,47 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // Banco de dados de produção do Render
+  provider = "postgresql" 
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// 🏢 TABELA MESTRA: EMPRESAS (OS SEUS CLIENTES SAAS)
-// ==========================================
 model Empresa {
   id             Int      @id @default(autoincrement())
-  nomeFantasia   String   // Ex: "Confecções do Sogro", "Moda Silva"
-  dono           String   // Nome do responsável
+  nomeFantasia   String   
+  dono           String   
   telefone       String?
-  emailLogin     String   @unique // O email que a empresa usará para entrar no QG
-  senhaLogin     String   // A palavra-passe do QG
-  
-  // O MOTOR DO DINHEIRO (SaaS)
-  status         String   @default("TESTE") // Pode ser: TESTE, ATIVO, BLOQUEADO
-  dataExpiracao  DateTime // O dia em que a assinatura corta o acesso
+  emailLogin     String   @unique 
+  senhaLogin     String   
+  status         String   @default("TESTE") 
+  dataExpiracao  DateTime 
   criadoEm       DateTime @default(now())
 
-  // Relações: Tudo o que pertence a esta empresa
   produtos       Produto[]
   sacoleiros     Sacoleiro[]
   malas          Mala[]
   vendas         VendaSacoleiro[]
 }
 
-// ==========================================
-// 📦 TABELAS FILHAS (Agora isoladas por Empresa)
-// ==========================================
 model Produto {
   id          Int      @id @default(autoincrement())
-  empresaId   Int      // <-- O carimbo que diz de quem é esta peça
+  empresaId   Int      
   empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   
   codigo      String?
   produto     String
-  preco       Float
+  
+  // 👇 AS NOSSAS 3 GAVETAS DE PREÇO
+  precoCusto  Float?   @default(0) 
+  preco       Float    
+  precoVarejo Float?   @default(0) 
+  
   quantidade  Int
   criadoEm    DateTime @default(now())
 }
 
 model Sacoleiro {
   id           Int      @id @default(autoincrement())
-  empresaId    Int      // <-- O carimbo de qual fábrica ela pertence
+  empresaId    Int      
   empresa      Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   
   nome         String
@@ -60,7 +56,7 @@ model Sacoleiro {
   malas        Mala[]
   vendas       VendaSacoleiro[]
   vendedoras   VendedoraFinal[] 
-  repasses     RepasseVendedora[] // <-- Ligação nova adicionada aqui
+  repasses     RepasseVendedora[]
 }
 
 model Mala {
@@ -74,7 +70,7 @@ model Mala {
   total          Float
   status         String   @default("PENDENTE")
   dataVencimento DateTime?
-  assinatura     String?  // Base64
+  assinatura     String?  
   criadoEm       DateTime @default(now())
 }
 
@@ -96,27 +92,25 @@ model VendaSacoleiro {
 model VendedoraFinal {
   id          Int      @id @default(autoincrement())
   nome        String
-  telefone    String   // Para o botão do WhatsApp
-  endereco    String   // Para o botão do Maps
+  telefone    String   
+  endereco    String   
   praca       String?  @default("Geral")
-  diaCobranca Int?     // Dia combinado para receber
+  diaCobranca String?  
   
   sacoleiraId Int
   sacoleira   Sacoleiro  @relation(fields: [sacoleiraId], references: [id]) 
 
-  kitsPegos   RepasseVendedora[] // <-- Ligação nova adicionada aqui
+  kitsPegos   RepasseVendedora[] 
 
   criadoEm    DateTime @default(now())
 }
 
-// ==========================================
-// 🎒 NOVA TABELA: REPASSE (Controle de Kits na Rua)
-// ==========================================
 model RepasseVendedora {
   id              Int      @id @default(autoincrement())
-  descricaoKits   String   // Ex: "3x Blusa M, 2x Calça Jeans"
-  valorTotal      Float    // Quanto a vendedora deve ao sacoleiro
-  status          String   @default("NA_RUA") // Pode ser "NA_RUA" ou "ACERTADO"
+  descricaoKits   String   
+  valorTotal      Float    
+  status          String   @default("NA_RUA") 
+  dataCobranca    String?  
   
   sacoleiroId     Int
   sacoleiro       Sacoleiro @relation(fields: [sacoleiroId], references: [id])
