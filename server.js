@@ -122,6 +122,56 @@ app.post('/estoque', verificarCracha, async (req, res) => {
   }
 });
 
+// ==========================================
+// 🎒 NOVA ROTA: MONTAR KIT E DAR BAIXA NO ESTOQUE
+// ==========================================
+app.post('/api/montar-kit', verificarCracha, async (req, res) => {
+    const { sacoleiroId, itens, dataVencimento } = req.body;
+    // 'itens' é uma lista com as roupas que o chefe escolheu
+    
+    try {
+        let descricaoKit = [];
+        let valorTotalAtacado = 0;
+
+        // 1. Percorre cada roupa escolhida para bater o estoque e somar o valor
+        for (let item of itens) {
+            const produtoDb = await prisma.produto.findUnique({ where: { id: item.id } });
+            
+            // Trava de segurança: impede de enviar mais peças do que tem no estoque
+            if (!produtoDb || produtoDb.quantidade < item.qtd) {
+                return res.status(400).json({ erro: `Estoque insuficiente para a peça: ${item.nome}.` });
+            }
+
+            // Dá a baixa no estoque da fábrica
+            await prisma.produto.update({
+                where: { id: item.id },
+                data: { quantidade: produtoDb.quantidade - item.qtd }
+            });
+
+            // Monta o textinho "5x Blusa" e soma o dinheiro (baseado no preço de atacado)
+            descricaoKit.push(`${item.qtd}x ${item.nome}`);
+            valorTotalAtacado += (item.qtd * item.precoAtacado); 
+        }
+
+        // 2. Cria a Mala (O pacote oficial que vai para o Sacoleiro)
+        const novaMala = await prisma.mala.create({
+            data: {
+                empresaId: req.empresaId,
+                sacoleiroId: parseInt(sacoleiroId),
+                produtoNome: descricaoKit.join(' + '),
+                total: valorTotalAtacado,
+                dataVencimento: new Date(dataVencimento + "T12:00:00Z"),
+                status: "PENDENTE"
+            }
+        });
+
+        res.json({ mensagem: "Kit despachado com sucesso!", mala: novaMala });
+    } catch (erro) {
+        console.error("Erro ao montar kit:", erro);
+        res.status(500).json({ erro: "Erro ao processar o kit no servidor." });
+    }
+});
+
 // --- SACOLEIROS ---
 app.get('/clientes', verificarCracha, async (req, res) => {
   const sacoleiros = await prisma.sacoleiro.findMany({ where: { empresaId: req.empresaId }});
