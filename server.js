@@ -77,14 +77,13 @@ app.post('/login', async (req, res) => {
 // ==========================================
 // 🛡️ O SEGURANÇA DA PORTA (ISOLAMENTO DE DADOS)
 // ==========================================
-// Todas as rotas abaixo vão exigir o "crachá" da empresa!
 const verificarCracha = (req, res, next) => {
-    const empresaId = req.headers['empresa-id']; // Lê o crachá
+    const empresaId = req.headers['empresa-id']; 
     if (!empresaId) {
         return res.status(401).json({ erro: "Acesso Negado! Crachá da empresa ausente." });
     }
-    req.empresaId = parseInt(empresaId); // Guarda no bolso para usar nas buscas
-    next(); // Libera a catraca
+    req.empresaId = parseInt(empresaId); 
+    next(); 
 };
 
 // ==========================================
@@ -97,28 +96,28 @@ app.get('/estoque', verificarCracha, async (req, res) => {
   res.json(estoque);
 });
 
-// NOVA ROTA COM OS 3 PREÇOS (Custo, Atacado e Varejo)
+// NOVA ROTA COM OS 3 PREÇOS BLINDADOS (À PROVA DE FALHAS)
 app.post('/estoque', verificarCracha, async (req, res) => {
   try {
-    // Converte os 3 valores, trocando vírgula por ponto para o banco de dados
-    const precoCusto = parseFloat(req.body.precoCusto.toString().replace(',', '.')) || 0;
-    const precoAtacado = parseFloat(req.body.preco.toString().replace(',', '.')) || 0;
-    const precoVarejo = parseFloat(req.body.precoVarejo.toString().replace(',', '.')) || 0;
+    const precoCusto = req.body.precoCusto ? parseFloat(String(req.body.precoCusto).replace(',', '.')) : 0;
+    const precoAtacado = req.body.preco ? parseFloat(String(req.body.preco).replace(',', '.')) : 0;
+    const precoVarejo = req.body.precoVarejo ? parseFloat(String(req.body.precoVarejo).replace(',', '.')) : 0;
 
     const novoProduto = await prisma.produto.create({
       data: {
         empresaId: req.empresaId, 
-        codigo: req.body.codigo, 
+        codigo: req.body.codigo || '', 
         produto: req.body.produto,
-        quantidade: parseInt(req.body.quantidade), 
+        quantidade: parseInt(req.body.quantidade) || 0, 
         precoCusto: precoCusto,
-        preco: precoAtacado,       // O valor que o sacoleiro deve à fábrica
-        precoVarejo: precoVarejo   // O valor que a vendedora vai cobrar na rua
+        preco: precoAtacado,       
+        precoVarejo: precoVarejo   
       }
     });
     res.json({ mensagem: "Produto salvo no cofre com sucesso!", produto: novoProduto });
   } catch (erro) {
-    res.status(400).json({ mensagem: "Erro: " + erro.message });
+    console.error("🚨 ERRO GRAVE NO ESTOQUE:", erro); 
+    res.status(400).json({ mensagem: "Erro interno no servidor: " + erro.message });
   }
 });
 
@@ -127,33 +126,27 @@ app.post('/estoque', verificarCracha, async (req, res) => {
 // ==========================================
 app.post('/api/montar-kit', verificarCracha, async (req, res) => {
     const { sacoleiroId, itens, dataVencimento } = req.body;
-    // 'itens' é uma lista com as roupas que o chefe escolheu
     
     try {
         let descricaoKit = [];
         let valorTotalAtacado = 0;
 
-        // 1. Percorre cada roupa escolhida para bater o estoque e somar o valor
         for (let item of itens) {
             const produtoDb = await prisma.produto.findUnique({ where: { id: item.id } });
             
-            // Trava de segurança: impede de enviar mais peças do que tem no estoque
             if (!produtoDb || produtoDb.quantidade < item.qtd) {
                 return res.status(400).json({ erro: `Estoque insuficiente para a peça: ${item.nome}.` });
             }
 
-            // Dá a baixa no estoque da fábrica
             await prisma.produto.update({
                 where: { id: item.id },
                 data: { quantidade: produtoDb.quantidade - item.qtd }
             });
 
-            // Monta o textinho "5x Blusa" e soma o dinheiro (baseado no preço de atacado)
             descricaoKit.push(`${item.qtd}x ${item.nome}`);
             valorTotalAtacado += (item.qtd * item.precoAtacado); 
         }
 
-        // 2. Cria a Mala (O pacote oficial que vai para o Sacoleiro)
         const novaMala = await prisma.mala.create({
             data: {
                 empresaId: req.empresaId,
@@ -192,7 +185,7 @@ app.post('/clientes', verificarCracha, async (req, res) => {
   }
 });
 
-// --- KITS E MALAS ---
+// --- KITS E MALAS (Antiga, mas mantida por segurança) ---
 app.post('/kits', verificarCracha, async (req, res) => {
   const { clienteId, itens, dataVencimento, assinatura } = req.body;
   try {
@@ -225,12 +218,13 @@ app.get('/minhas-dividas/:id', verificarCracha, async (req, res) => {
 // --- CATÁLOGO DIGITAL (Aberto ao público, mas filtrado) ---
 app.get('/catalogo-publico', async (req, res) => {
   const empresaId = parseInt(req.query.empresa);
-  if(!empresaId) return res.json([]); // Se não disser de qual loja é, não mostra nada
+  if(!empresaId) return res.json([]); 
   
   const estoque = await prisma.produto.findMany({ where: { quantidade: { gt: 0 }, empresaId: empresaId } });
   const vitrine = estoque.map(p => ({ id: p.id, nome: p.produto, codigo: p.codigo, precoSugerido: p.preco * 2 }));
   res.json(vitrine);
 });
+
 // ==========================================
 // 💵 ROTAS DE ACERTOS (PAGAR PARCIAL E QUITAR)
 // ==========================================
@@ -278,7 +272,6 @@ app.post('/login-app', async (req, res) => {
                 senhaApp:   senha    
             }
         });
-        console.log("Resultado da busca:", sacoleiro);
 
         if (sacoleiro) {
             res.json({ sacoleira: sacoleiro });
@@ -311,8 +304,6 @@ app.get('/minhas-clientes-crm/:sacoleiroId', async (req, res) => {
 // ==========================================
 // 👩‍💼 ROTAS DAS VENDEDORAS (Isoladas por Sacoleiro)
 // ==========================================
-
-// 1. ROTA PARA CADASTRAR UMA NOVA VENDEDORA
 app.post('/api/vendedoras', async (req, res) => {
   const { nome, telefone, endereco, praca, diaCobranca, sacoleiraId } = req.body;
   
@@ -323,7 +314,7 @@ app.post('/api/vendedoras', async (req, res) => {
         telefone: telefone,
         endereco: endereco,
         praca: praca || "Geral", 
-        diaCobranca: diaCobranca, // <-- A trava de números foi removida daqui!
+        diaCobranca: diaCobranca, 
         sacoleiraId: parseInt(sacoleiraId) 
       }
     });
@@ -334,7 +325,6 @@ app.post('/api/vendedoras', async (req, res) => {
   }
 });
 
-// 2. NOVA ROTA: EDITAR DADOS DA VENDEDORA
 app.put('/api/vendedoras/:id', async (req, res) => {
     const vendedoraId = parseInt(req.params.id);
     const { nome, telefone, endereco, praca, diaCobranca } = req.body;
@@ -351,7 +341,6 @@ app.put('/api/vendedoras/:id', async (req, res) => {
     }
 });
 
-// 3. ROTA PARA LISTAR AS VENDEDORAS
 app.get('/api/vendedoras/sacoleiro/:id', async (req, res) => {
   const sacoleiroId = req.params.id;
   try {
@@ -380,7 +369,7 @@ app.post('/api/repasse', async (req, res) => {
                 valorTotal: parseFloat(valorTotal)
             }
         });
-        res.json({ mensagem: "Kits repassados para a vendedora com sucesso!", repasse });
+        res.json({ mensagem: "Kits repassados com sucesso!", repasse });
     } catch (erro) {
         console.error("Erro no repasse:", erro);
         res.status(500).json({ erro: "Erro ao registrar repasse." });
@@ -399,7 +388,7 @@ app.get('/api/repasse/sacoleiro/:id', async (req, res) => {
         });
         res.json(mercadoriaNaRua);
     } catch (erro) {
-        res.status(500).json({ erro: "Erro ao buscar mercadorias na rua." });
+        res.status(500).json({ erro: "Erro ao buscar mercadorias." });
     }
 });
 
