@@ -97,16 +97,26 @@ app.get('/estoque', verificarCracha, async (req, res) => {
   res.json(estoque);
 });
 
+// NOVA ROTA COM OS 3 PREÇOS (Custo, Atacado e Varejo)
 app.post('/estoque', verificarCracha, async (req, res) => {
   try {
-    const preco = parseFloat(req.body.preco.toString().replace(',', '.'));
+    // Converte os 3 valores, trocando vírgula por ponto para o banco de dados
+    const precoCusto = parseFloat(req.body.precoCusto.toString().replace(',', '.')) || 0;
+    const precoAtacado = parseFloat(req.body.preco.toString().replace(',', '.')) || 0;
+    const precoVarejo = parseFloat(req.body.precoVarejo.toString().replace(',', '.')) || 0;
+
     const novoProduto = await prisma.produto.create({
       data: {
-        empresaId: req.empresaId, codigo: req.body.codigo, produto: req.body.produto,
-        quantidade: parseInt(req.body.quantidade), preco: preco
+        empresaId: req.empresaId, 
+        codigo: req.body.codigo, 
+        produto: req.body.produto,
+        quantidade: parseInt(req.body.quantidade), 
+        precoCusto: precoCusto,
+        preco: precoAtacado,       // O valor que o sacoleiro deve à fábrica
+        precoVarejo: precoVarejo   // O valor que a vendedora vai cobrar na rua
       }
     });
-    res.json({ mensagem: "Salvo no banco!", produto: novoProduto });
+    res.json({ mensagem: "Produto salvo no cofre com sucesso!", produto: novoProduto });
   } catch (erro) {
     res.status(400).json({ mensagem: "Erro: " + erro.message });
   }
